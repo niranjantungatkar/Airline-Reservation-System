@@ -2,8 +2,10 @@ package edu.sjsu.models;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.Table;
 
 @Entity
+@Table(name = "Passenger")
 public class Passenger {
 
 	@Id
@@ -13,6 +15,19 @@ public class Passenger {
     private int age;
     private String gender;
     private String phone;
+    
+    public Passenger() {
+    	
+    }
+    
+    public Passenger(String id, String firstname, String lastname, int age, String gender, String phone) {
+    	this.id = id;
+    	this.firstname = firstname;
+    	this.lastname = lastname;
+    	this.age = age;
+    	this.gender = gender;
+    	this.phone = phone;
+    }
     
     
 	public String getId() {
