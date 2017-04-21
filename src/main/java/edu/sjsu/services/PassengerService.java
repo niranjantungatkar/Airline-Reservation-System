@@ -14,7 +14,6 @@ public class PassengerService {
 	@Autowired
 	private PassengerDAO passengerDAO;
 	
-	
 	public List<Passenger> getAll() {
 		return passengerDAO.getAll();
 	}
