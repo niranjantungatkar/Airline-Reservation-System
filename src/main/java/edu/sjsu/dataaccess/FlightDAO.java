@@ -18,6 +18,10 @@ public class FlightDAO {
 	@PersistenceContext
 	private EntityManager entityManager;
 	  
+	/*
+	 * Get a Flight 
+	 * 
+	 */
 	@SuppressWarnings("unchecked")
 	public Flight getFlight(String number) {
 		return entityManager.find(Flight.class, number);

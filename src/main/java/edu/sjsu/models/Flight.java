@@ -33,6 +33,7 @@ public class Flight {
     @JoinColumn(name="model")
     private Plane plane;
 
+    //@OneToMany
     //private List<Passenger> passengers;
 	
 	public Flight() {
