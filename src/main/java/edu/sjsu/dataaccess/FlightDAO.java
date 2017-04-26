@@ -26,4 +26,8 @@ public class FlightDAO {
 	public Flight getFlight(String number) {
 		return entityManager.find(Flight.class, number);
 	}
+	
+	public Flight createFlight(Flight flight) {
+		return entityManager.merge(flight);
+	}
 }

@@ -21,5 +21,17 @@ public class PassengerDAO {
 	  public List<Passenger> getAll() {
 	    return entityManager.createQuery("from Passenger").getResultList();
 	  }
-	
+	  
+	  public void createPassenger(Passenger newPassenger) {
+		  entityManager.persist(newPassenger);
+	  }
+	  
+	  public Passenger getPassenger(String id) {
+		  return entityManager.find(Passenger.class, id);
+	  }
+	  
+	  public Passenger updatePassenger(Passenger updPassenger) {
+		  return entityManager.merge(updPassenger);
+	  }
+	  
 }

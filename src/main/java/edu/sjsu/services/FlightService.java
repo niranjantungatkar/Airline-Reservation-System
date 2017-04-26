@@ -16,4 +16,7 @@ public class FlightService {
 		return flightdao.getFlight(number);
 	}
 	
+	public Flight createFlight(Flight flight) {
+		return flightdao.createFlight(flight);
+	}
 }

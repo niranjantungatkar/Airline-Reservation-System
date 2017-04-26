@@ -18,4 +18,16 @@ public class PassengerService {
 		return passengerDAO.getAll();
 	}
 	
+	public void createPassenger(Passenger newPassenger) {
+		passengerDAO.createPassenger(newPassenger);
+	}
+	
+	public Passenger getPassenger(String id) {
+		return passengerDAO.getPassenger(id);
+	}
+	
+	public Passenger updatePassenger(Passenger updPassenger) {
+		return passengerDAO.updatePassenger(updPassenger);
+	}
+	
 }

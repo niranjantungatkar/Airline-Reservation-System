@@ -3,11 +3,17 @@ package edu.sjsu.models;
 import java.util.Date;
 import java.util.List;
 
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
+import javax.xml.bind.annotation.XmlRootElement;
+
+import org.springframework.format.annotation.DateTimeFormat;
 
 @Entity
 public class Flight {
@@ -17,24 +23,27 @@ public class Flight {
     
     private int price;
     
+    @Column(name = "arrFrom")
     private String from;
     
+    @Column(name = "destination")
     private String to;  
     
+    @DateTimeFormat(pattern = "yy-dd-MM-hh")
     private Date departureTime;     
     
+    @DateTimeFormat(pattern = "yy-dd-MM-hh")
     private Date arrivalTime;
     
     private int seatsLeft; 
     
     private String description;
     
-    @OneToOne(fetch=FetchType.EAGER)
-    @JoinColumn(name="model")
+    @OneToOne(cascade=CascadeType.MERGE,fetch=FetchType.EAGER)
     private Plane plane;
 
-    //@OneToMany
-    //private List<Passenger> passengers;
+    @OneToMany
+    private List<Passenger> passengers;
 	
 	public Flight() {
 		super();
@@ -110,5 +119,13 @@ public class Flight {
 
 	public void setPlane(Plane plane) {
 		this.plane = plane;
-	}  
+	} 
+	
+	public void setPassenger(List<Passenger> passengers) {
+		this.passengers = passengers;
+	}
+	
+	public List<Passenger> getPassengers() {
+		return passengers;
+	}
 }
