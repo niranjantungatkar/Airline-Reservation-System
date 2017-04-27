@@ -6,6 +6,8 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import edu.sjsu.dataaccess.FlightDAO;
+import edu.sjsu.dataaccess.PassengerDAO;
 import edu.sjsu.dataaccess.ReservationDAO;
 import edu.sjsu.models.Flight;
 import edu.sjsu.models.Passenger;
@@ -16,29 +18,46 @@ public class ReservationService {
 
 	@Autowired
 	private ReservationDAO reservationDAO;
-	
-	public void createReservation(String passengerid, String flightLists) {
-		Passenger p = new Passenger();
-		p.setId(passengerid);
+
+	@Autowired
+	private PassengerService passengerService;
+
+	@Autowired
+	private FlightService flightService;
+
+	public void createReservation(String passengerid, String[] flightLists) {
+
+		Reservation reservation = new Reservation();
+
+		Passenger passenger = passengerService.getPassenger(passengerid);
+		List<Flight> flights = flightService.getFlights(flightLists);
+
+		int total_price = 0;
+		for (Flight flight : flights) {
+			total_price += flight.getPrice();
+		}
+
+		reservation.setPassenger(passenger);
+		reservation.setFlights(flights);
+		reservation.setPrice(total_price);
+		reservation.setOrderNumber("AJAY007");
+
+		reservationDAO.createReservation(reservation);
 		
-		String [] flightNames = flightLists.split(",");
-		
-		List<Flight> flights = new ArrayList<Flight>();
-		for(String flight : flightNames) {
-			Flight f = new Flight();
-			f.setNumber(flight);
-			flights.add(f);
+		// Update flights
+		for(Flight flight : flights){
+			flight.getPassengers().add(passenger);
+			flight.setSeatsLeft(flight.getSeatsLeft() - 1);
+			flightService.createFlight(flight);
 		}
 		
-		Reservation rs = new Reservation();
-		rs.setOrderNumber("111");
-		rs.setPrice(300);
-		rs.setPassenger(p);
-		rs.setFlights(flights);
-	
-		reservationDAO.createReservation(rs);
+		
+		
+		
+		
+		
 	}
-	
+
 	public Reservation getReservation(String orderNumber) {
 		return reservationDAO.getReservation(orderNumber);
 	}

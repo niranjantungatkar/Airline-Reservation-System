@@ -51,20 +51,20 @@ public class FlightController {
 							   @RequestParam("manufacturer") String manufacturer,
 							   @RequestParam("yearOfManufacture") int yearOfManufacture) {
 		try {
-			if(flightservice.getFlight(flightnumber) != null) {
-				return new ResponseEntity(getErrorResponse("400", "Flight "+flightnumber+" already exists!"), HttpStatus.BAD_REQUEST);
-			} else {
-				
+					
 				Flight flight = new Flight();
 				flight.setNumber(flightnumber);
 				flight.setPrice(price);
 				flight.setFrom(from);
 				flight.setTo(to);
 				flight.setSeatsLeft(capacity);
-				DateFormat formatter = new SimpleDateFormat("yy-mm-dd-hh");
+				DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd-HH");
 				Date depT = formatter.parse(departureTime);
+				System.out.println(depT.toString());
+				System.out.println("---------------------------------------------");
 				flight.setDepartureTime(depT);
 				Date arrT = formatter.parse(arrivalTime);
+				System.out.println(arrT.toString());
 				flight.setArrivalTime(arrT);
 				flight.setDescription(description);
 				
@@ -77,7 +77,7 @@ public class FlightController {
 				flight.setPlane(plane);
 				
 				return new ResponseEntity(flightservice.createFlight(flight), HttpStatus.OK);
-			}
+			
 		} catch(Exception ex) {
 			ex.printStackTrace();
 			return new ResponseEntity(getErrorResponse("400", ex.getMessage()),HttpStatus.BAD_REQUEST);
