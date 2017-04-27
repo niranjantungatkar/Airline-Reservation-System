@@ -43,6 +43,7 @@ public class ReservationService {
 		reservation.setOrderNumber("AJAY007");
 
 		reservationDAO.createReservation(reservation);
+
 		
 		// Update flights
 		for(Flight flight : flights){
@@ -50,12 +51,6 @@ public class ReservationService {
 			flight.setSeatsLeft(flight.getSeatsLeft() - 1);
 			flightService.createFlight(flight);
 		}
-		
-		
-		
-		
-		
-		
 	}
 
 	public Reservation getReservation(String orderNumber) {

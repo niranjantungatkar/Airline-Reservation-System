@@ -43,15 +43,24 @@ public class PassengerService {
 	public boolean deletePassenger(String id) {
 		try {
 			Passenger delPassenger = passengerDAO.getPassenger(id);
-			List<Reservation> reservations = delPassenger.getReservations();
+			List<Reservation> reservations = reservationDAO.getReservations(id);
+			if(reservations.isEmpty())
+				System.out.println("EMPTYTPTTTYTYTYTYTYT");
+			else {
+				for(Reservation reservation : reservations)
+					System.out.println(reservation.getOrderNumber());
+			}
 			for(Reservation reservation : reservations) {
+				System.out.println("---->hhhh");
 				List<Flight> flights = reservation.getFlights();
 				for(Flight flight : flights) {
+					System.out.println("---->kkkk");
 					flight.setSeatsLeft(flight.getSeatsLeft() + 1);
 					flightDAO.createFlight(flight);
 				}
 				reservationDAO.deleteReservation(reservation);
 			}
+			passengerDAO.deletePassenger(delPassenger);
 			return true;
 		} catch (Exception ex) {
 			return false;

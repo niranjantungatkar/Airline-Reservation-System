@@ -91,10 +91,20 @@ public class FlightController {
 	 * @param json
 	 * @return
 	 */
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@RequestMapping(value="/flight/{number}")
-	public Flight getFlight(@PathVariable("number") String number, 
+	public ResponseEntity getFlight(@PathVariable("number") String number, 
 							@RequestParam(value="xml",required = false) String xml, 
 							@RequestParam(value="json", required = false) String json) {
-		return flightservice.getFlight(number);
+		try {
+			if(flightservice.getFlight(number) != null) {
+				return new ResponseEntity(flightservice.getFlight(number), HttpStatus.OK);
+			} else {
+				return new ResponseEntity(getErrorResponse("404", "Flight with number "+number+" not found"), HttpStatus.NOT_FOUND);
+			}
+			
+		} catch(Exception ex) {
+			return new ResponseEntity(getErrorResponse("400", ex.getMessage()), HttpStatus.BAD_REQUEST);
+		}
 	}
 }

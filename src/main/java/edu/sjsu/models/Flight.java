@@ -9,6 +9,7 @@ import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -29,20 +30,20 @@ public class Flight {
     @Column(name = "destination")
     private String to;  
     
-    @DateTimeFormat(pattern = "yy-dd-MM-hh")
+    @DateTimeFormat(pattern = "yyyy-MM-dd-HH")
     private Date departureTime;     
     
-    @DateTimeFormat(pattern = "yy-dd-MM-hh")
+    @DateTimeFormat(pattern = "yy-MM-dd-HH")
     private Date arrivalTime;
     
     private int seatsLeft; 
     
     private String description;
     
-    @OneToOne(cascade=CascadeType.MERGE,fetch=FetchType.EAGER)
+    @OneToOne(cascade={CascadeType.MERGE},fetch=FetchType.EAGER)
     private Plane plane;
 
-    @OneToMany
+    @ManyToMany
     private List<Passenger> passengers;
 	
 	public Flight() {

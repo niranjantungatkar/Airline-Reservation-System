@@ -9,6 +9,8 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 
+import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.CascadeType;
 import org.hibernate.annotations.GenericGenerator;
 
 @Entity
@@ -25,8 +27,9 @@ public class Passenger {
     private String gender;
     private String phone;
   
-    @OneToMany
-    private List<Reservation> reservations;
+    /*@OneToMany
+    @Cascade(value = { CascadeType.ALL })
+    private List<Reservation> reservations;*/
     
     public Passenger() {
     	super();
@@ -90,11 +93,11 @@ public class Passenger {
 		this.phone = phone;
 	}
 
-	public List<Reservation> getReservations() {
+	/*public List<Reservation> getReservations() {
 		return reservations;
 	}
 
 	public void setReservations(List<Reservation> reservations) {
 		this.reservations = reservations;
-	}
+	}*/
 }

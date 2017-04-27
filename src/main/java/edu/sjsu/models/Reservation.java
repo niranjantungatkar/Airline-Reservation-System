@@ -2,6 +2,7 @@ package edu.sjsu.models;
 
 import java.util.List;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
@@ -20,7 +21,7 @@ public class Reservation {
     
 	private int price; // sum of each flight’s price.
     
-    @OneToMany
+    @OneToMany(cascade={CascadeType.ALL}, orphanRemoval = true)
     private List<Flight> flights;
 
 	public Reservation() {

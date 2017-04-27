@@ -131,10 +131,11 @@ public class PassengerController {
 	}
 	
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	@RequestMapping(value = "/passenger/{id}", method = RequestMethod.POST)
+	@RequestMapping(value = "/passenger/{id}", method = RequestMethod.DELETE)
 	public ResponseEntity deletePassenger(@PathVariable("id") String id) {
 		try {
 			if(passengerService.getPassenger(id) != null) {
+				System.out.println("lalalalalalalla");
 				passengerService.deletePassenger(id);
 				return new ResponseEntity("OK", HttpStatus.OK);
 			} else {
@@ -145,6 +146,7 @@ public class PassengerController {
 			return new ResponseEntity(getErrorResponse("400", ex.getMessage()), HttpStatus.BAD_REQUEST);
 		}
 	}
+	
 	@RequestMapping(value="/passengers")
 	public List<Passenger> getAll() {
 	      return passengerService.getAll();

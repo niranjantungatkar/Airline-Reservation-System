@@ -34,4 +34,9 @@ public class PassengerDAO {
 		  return entityManager.merge(updPassenger);
 	  }
 	  
+	  public void deletePassenger(Passenger delPassenger) {
+		  //Passenger p = entityManager.find(Passenger.class, id);
+		  entityManager.remove(delPassenger);
+	  }
+	  
 }
