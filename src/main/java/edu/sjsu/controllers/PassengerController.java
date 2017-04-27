@@ -130,7 +130,21 @@ public class PassengerController {
 		}	
 	}
 	
-	
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@RequestMapping(value = "/passenger/{id}", method = RequestMethod.POST)
+	public ResponseEntity deletePassenger(@PathVariable("id") String id) {
+		try {
+			if(passengerService.getPassenger(id) != null) {
+				passengerService.deletePassenger(id);
+				return new ResponseEntity("OK", HttpStatus.OK);
+			} else {
+				String error = "Passenger with id "+id+" does not exist";
+				return new ResponseEntity(getErrorResponse("404", error), HttpStatus.NOT_FOUND);
+			}
+		} catch(Exception ex) {
+			return new ResponseEntity(getErrorResponse("400", ex.getMessage()), HttpStatus.BAD_REQUEST);
+		}
+	}
 	@RequestMapping(value="/passengers")
 	public List<Passenger> getAll() {
 	      return passengerService.getAll();

@@ -22,9 +22,10 @@ public class AirlineReservationSystemApplication extends WebMvcConfigurerAdapter
 		 configurer.favorParameter(true)
 		 	.parameterName("xml")
 		 	.defaultContentType(MediaType.APPLICATION_JSON)
-	        .mediaType("true", MediaType.APPLICATION_XML);
+	        .mediaType("true", MediaType.APPLICATION_XML)
+		 	.ignoreAcceptHeader(false);
 	        //.ignoreUnknownPathExtensions(false)
-	        //.ignoreAcceptHeader(false)
+	        //
 	        //.useJaf(true);
 	 }
 }

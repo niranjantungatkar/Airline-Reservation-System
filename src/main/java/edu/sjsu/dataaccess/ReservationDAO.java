@@ -26,4 +26,10 @@ public class ReservationDAO {
 		return entityManager.find(Reservation.class, orderNumber);
 	}
 	
+	/*
+	 * Note : this method is used by passengerService while deleting a passenger
+	 */
+	public void deleteReservation(Reservation reservation) {
+		entityManager.remove(reservation);
+	}
 }
