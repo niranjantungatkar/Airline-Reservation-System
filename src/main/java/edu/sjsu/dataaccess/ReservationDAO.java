@@ -12,6 +12,7 @@ import edu.sjsu.models.Flight;
 import edu.sjsu.models.Passenger;
 import edu.sjsu.models.Reservation;
 
+
 @Repository
 @Transactional
 public class ReservationDAO {
@@ -37,13 +38,11 @@ public class ReservationDAO {
 	}
 	
 	@SuppressWarnings("unchecked")
-	public List<Reservation> getReservations(String pid) {
-		System.out.println("In reservations");
-		List<Reservation> reservations = entityManager.createQuery("select r from Reservation r where r.passenger = :value1")
-				.setParameter("value1", pid).getResultList();
-		for(Reservation r : reservations)
-			System.out.println(r.getOrderNumber());
+	public List<Reservation> getReservations(Passenger delPassenger) {
+		List<Reservation> reservations = entityManager
+											.createQuery("Select r from Reservation r where r.passenger = :pid")
+											.setParameter("pid", delPassenger)
+											.getResultList();
 		return reservations;
-		//return entityManager.find(Reservation.class, delPassenger);
 	}
 }

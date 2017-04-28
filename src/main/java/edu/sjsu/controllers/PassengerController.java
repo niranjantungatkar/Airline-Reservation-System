@@ -134,14 +134,11 @@ public class PassengerController {
 	@RequestMapping(value = "/passenger/{id}", method = RequestMethod.DELETE)
 	public ResponseEntity deletePassenger(@PathVariable("id") String id) {
 		try {
-			if(passengerService.getPassenger(id) != null) {
-				System.out.println("lalalalalalalla");
-				passengerService.deletePassenger(id);
-				return new ResponseEntity("OK", HttpStatus.OK);
-			} else {
-				String error = "Passenger with id "+id+" does not exist";
-				return new ResponseEntity(getErrorResponse("404", error), HttpStatus.NOT_FOUND);
-			}
+			if(passengerService.deletePassenger(id))
+				return new ResponseEntity(true, HttpStatus.OK);
+			else
+				return new ResponseEntity(getErrorResponse("404", "Passenger with "+id+" not found"), HttpStatus.NOT_FOUND);
+			
 		} catch(Exception ex) {
 			return new ResponseEntity(getErrorResponse("400", ex.getMessage()), HttpStatus.BAD_REQUEST);
 		}

@@ -21,7 +21,7 @@ public class Reservation {
     
 	private int price; // sum of each flight’s price.
     
-    @OneToMany(cascade={CascadeType.ALL}, orphanRemoval = true)
+    @OneToMany
     private List<Flight> flights;
 
 	public Reservation() {

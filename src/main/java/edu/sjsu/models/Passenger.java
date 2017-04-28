@@ -27,10 +27,6 @@ public class Passenger {
     private String gender;
     private String phone;
   
-    /*@OneToMany
-    @Cascade(value = { CascadeType.ALL })
-    private List<Reservation> reservations;*/
-    
     public Passenger() {
     	super();
     }
