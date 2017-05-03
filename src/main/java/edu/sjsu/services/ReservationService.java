@@ -74,6 +74,9 @@ public class ReservationService {
 	public void updateReservation(String number, String[] flightsAdded, String[] flightsRemoved) throws Exception {
 
 		Reservation reservation = reservationDAO.getReservation(number);
+		List<Flight> addedFlights = flightService.getFlights(flightsAdded);
+		List<Flight> removedFlights = flightService.getFlights(flightsRemoved);
+
 		List<Flight> flights = null;
 		try {
 			flights = reservation.getFlights();
@@ -81,15 +84,27 @@ public class ReservationService {
 			throw new NullPointerException("Reservation " + number + " does not exists!! Please check again!!");
 		}
 
+		// Check the number of seats left before proceeding
+		for (Flight flight : addedFlights) {
+			if (flight.getSeatsLeft() < 1) {
+				throw new Exception(
+						"Not enough seats left in the flight " + flight.getNumber() + " that you are trying to add ");
+			}
+		}
+
+		// add the flight numbers to existing reservation flights
 		List<String> allFlightNumbers = new ArrayList<>();
 		for (Flight flight : flights) {
 			allFlightNumbers.add(flight.getNumber());
 		}
 		Collections.addAll(allFlightNumbers, flightsAdded);
+
+		// remove the flight from the existing reservation
 		for (String str : flightsRemoved) {
 			allFlightNumbers.remove(str);
 		}
 
+		// Check the overlap in the current updated reservation
 		if (flightService.checkOverlap(allFlightNumbers.toArray(new String[allFlightNumbers.size()]))) {
 			System.out.println("Unable to update the reservation as there is overlap between the flights");
 			throw new Exception("Overlap between the timings of the flights!! Can not update the reservation");
@@ -106,6 +121,7 @@ public class ReservationService {
 		}
 		newAllFlights.addAll(allFlightNumbers);
 
+		// Check the overlap between any of the existing reservation
 		if (flightService.checkOverlap(newAllFlights.toArray(new String[newAllFlights.size()]))) {
 			System.out.println("Unable to update the reservation as there is overlap between other reservations");
 			throw new Exception(
@@ -114,14 +130,32 @@ public class ReservationService {
 
 		List<Flight> updatedFlights = flightService
 				.getFlights(allFlightNumbers.toArray(new String[allFlightNumbers.size()]));
+		
 		reservation.setFlights(updatedFlights);
-		
-		// TODO:
-		// Update the price  of new reservation
-		// Update the list of passengers in added and removed flights
-		// Updates the seats left in added ad removed flights accordigly.
-		
-		
+
+		// Update the price of the updated reservation
+		int total_price = 0;
+		for (Flight flight : updatedFlights) {
+			total_price += flight.getPrice();
+		}
+		reservation.setPrice(total_price);
+
+		// Add the passenger in the newly added flights and Update the seats
+		// left. decrease it by 1
+		for (Flight flight : addedFlights) {
+			flight.getPassengers().add(passenger);
+			flight.setSeatsLeft(flight.getSeatsLeft() - 1);
+		}
+
+		// Remove the passenger from the flights that are removed and Update the
+		// seats left. Increase it by 1
+		for (Flight flight : removedFlights) {
+			flight.getPassengers().remove(passenger);
+			flight.setSeatsLeft(flight.getSeatsLeft() + 1);
+		}
+		// Save the updated values
+		reservationDAO.createReservation(reservation);
+
 	}
 
 	public void createReservation(String passengerid, String[] flightLists) {
