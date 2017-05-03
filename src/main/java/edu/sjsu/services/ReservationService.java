@@ -56,4 +56,8 @@ public class ReservationService {
 	public Reservation getReservation(String orderNumber) {
 		return reservationDAO.getReservation(orderNumber);
 	}
+	
+	public List<Reservation> getReservations(Passenger passenger) {
+		return reservationDAO.getReservations(passenger);
+	}
 }

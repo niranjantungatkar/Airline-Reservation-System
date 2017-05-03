@@ -43,7 +43,6 @@ public class PassengerService {
 	public boolean deletePassenger(String id) {
 		Passenger delPassenger = passengerDAO.getPassenger(id);
 		if(delPassenger != null) {
-			System.out.println("Passenger got");
 			List<Reservation> reservations = reservationDAO.getReservations(delPassenger);
 			if(reservations != null) {
 				for(Reservation reservation : reservations) {
