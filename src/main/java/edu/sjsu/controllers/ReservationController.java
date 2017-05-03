@@ -3,6 +3,8 @@ package edu.sjsu.controllers;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.websocket.server.PathParam;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -75,7 +77,30 @@ public class ReservationController {
 		}
 	}
 
-	@RequestMapping(value = "/reservation/{orderNumber}")
+	@RequestMapping(value = "/reservation/{number}", method = RequestMethod.POST)
+	public ResponseEntity updateReservation(@PathVariable("number") String number,
+			@RequestParam("flightsAdded") String[] flightsAdded,
+			@RequestParam("flightsRemoved") String[] flightsRemoved) {
+
+		try {
+			if (flightsAdded.length == 0) {
+				throw new Exception("FlightsAdded can not be empty. Please check the request again");
+			}
+			if (flightsRemoved.length == 0) {
+				throw new Exception("Flightsremoved can not be empty. Please check the request again");
+			}
+
+			reservationservice.updateReservation(number, flightsAdded, flightsRemoved);
+		} catch (Exception e) {
+			System.out.println("ahahahahahahhahahahahahahahah");
+			e.printStackTrace(System.out);
+			return new ResponseEntity(getErrorResponse("400", e.getMessage()), HttpStatus.BAD_REQUEST);
+		}
+
+		return null;
+	}
+
+	@RequestMapping(value = "/reservation/{orderNumber}", method = RequestMethod.GET)
 	public Reservation getReservation(@PathVariable("orderNumber") String orderNumber) {
 		return reservationservice.getReservation(orderNumber);
 	}
