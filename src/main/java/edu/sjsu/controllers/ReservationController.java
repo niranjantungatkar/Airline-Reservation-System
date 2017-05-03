@@ -1,7 +1,6 @@
 package edu.sjsu.controllers;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +12,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import edu.sjsu.models.Flight;
 import edu.sjsu.models.Passenger;
 import edu.sjsu.models.Reservation;
 import edu.sjsu.services.FlightService;
@@ -45,21 +43,34 @@ public class ReservationController {
 				throw new Exception("Passenger" + pid + " Does not exists");
 			}
 
-			// Check if overlap occurs between the flights
+			// Check for the over lap between the flights of current reservation
 			if (flightService.checkOverlap(flightLists)) {
 				System.out.println("Overlap between the timing!! Can not make the reservation");
 				throw new Exception("Overlap between flights occurred. Can not make reservation");
 			}
 
+			// Check for availability of flight using seats left
 			if (!flightService.checkFlightsAvailability(flightLists)) {
 				System.out.println("Not enough seats avaiable in the some flights");
 				throw new Exception("Not enough seats avaiable for making reservation");
 			}
 
+			// Check duplicate reservation
+			if (reservationservice.checkDuplicate(pid, flightLists)) {
+				System.out.println("Duplicate reservation");
+				throw new Exception(
+						"Duplicate reservation. Reservation with same passenger and flights already exists. Please check is the history");
+			}
+
+			// Check existing reservations for overlap
+			if (reservationservice.checkOverlapExisting(pid, flightLists)) {
+				System.out.println("Overlap with existing reservation");
+				throw new Exception("Overlap between the existing reservtions occurs");
+			}
+
 			reservationservice.createReservation(pid, flightLists);
 			return null;
 		} catch (Exception e) {
-			// TODO: handle exception
 			return new ResponseEntity(getErrorResponse("400", e.getMessage()), HttpStatus.BAD_REQUEST);
 		}
 	}

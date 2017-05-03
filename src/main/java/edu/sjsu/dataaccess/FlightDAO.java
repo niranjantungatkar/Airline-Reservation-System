@@ -1,7 +1,5 @@
 package edu.sjsu.dataaccess;
 
-import java.util.List;
-
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.transaction.Transactional;
@@ -9,7 +7,6 @@ import javax.transaction.Transactional;
 import org.springframework.stereotype.Repository;
 
 import edu.sjsu.models.Flight;
-import edu.sjsu.models.Passenger;
 
 @Repository
 @Transactional

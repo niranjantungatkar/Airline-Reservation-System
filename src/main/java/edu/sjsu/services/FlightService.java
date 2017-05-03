@@ -44,18 +44,18 @@ public class FlightService {
 			for (int j = 0; j < flights.size(); j++) {
 				if (i != j) {
 					Flight checkFlight = flights.get(j);
-					case1 = flight.getDepartureTime().after(checkFlight.getDepartureTime())
-							&& flight.getDepartureTime().before(checkFlight.getArrivalTime());
-					case2 = flight.getArrivalTime().after(checkFlight.getDepartureTime())
-							&& flight.getArrivalTime().before(checkFlight.getArrivalTime());
-					if(case1 || case2){
+					case1 = (flight.getDepartureTime().after(checkFlight.getDepartureTime()) || flight.getDepartureTime().equals(checkFlight.getDepartureTime())) 
+							&& (flight.getDepartureTime().before(checkFlight.getArrivalTime()) || flight.getDepartureTime().equals(checkFlight.getArrivalTime()));
+					case2 = (flight.getArrivalTime().after(checkFlight.getDepartureTime()) || flight.getArrivalTime().equals(checkFlight.getDepartureTime()) )
+							&& (flight.getArrivalTime().before(checkFlight.getArrivalTime()) || flight.getArrivalTime().equals(checkFlight.getArrivalTime()));
+					if (case1 || case2) {
 						return true;
 					}
-					
+
 				}
 			}
 		}
-	return false;
+		return false;
 	}
 
 	public Boolean checkFlightAvailability(String flightNumber) {
@@ -71,5 +71,4 @@ public class FlightService {
 		return result;
 	}
 
-	
 }
