@@ -242,9 +242,9 @@ public class PassengerController {
 		try {
 			System.out.println("Delete");
 			if(passengerService.deletePassenger(id))
-				return new ResponseEntity(true, HttpStatus.OK);
+				return new ResponseEntity(getErrorResponse("200", "Passenger with "+id+" deleted successfully."), HttpStatus.OK);
 			else
-				return new ResponseEntity(getErrorResponse("404", "Passenger with "+id+" not found"), HttpStatus.NOT_FOUND);
+				return new ResponseEntity(getErrorResponse("404", "Passenger with "+id+" not found."), HttpStatus.NOT_FOUND);
 			
 		} catch(Exception ex) {
 			return new ResponseEntity(getErrorResponse("400", ex.getMessage()), HttpStatus.BAD_REQUEST);
