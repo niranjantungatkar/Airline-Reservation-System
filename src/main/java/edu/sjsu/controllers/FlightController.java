@@ -4,6 +4,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +18,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import edu.sjsu.dataaccess.FlightDAO;
 import edu.sjsu.models.Flight;
+import edu.sjsu.models.Passenger;
 import edu.sjsu.models.Plane;
 import edu.sjsu.services.FlightService;
 
@@ -60,11 +63,10 @@ public class FlightController {
 				flight.setSeatsLeft(capacity);
 				DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd-HH");
 				Date depT = formatter.parse(departureTime);
-				System.out.println(depT.toString());
-				System.out.println("---------------------------------------------");
+				
 				flight.setDepartureTime(depT);
 				Date arrT = formatter.parse(arrivalTime);
-				System.out.println(arrT.toString());
+				
 				flight.setArrivalTime(arrT);
 				flight.setDescription(description);
 				
@@ -107,4 +109,26 @@ public class FlightController {
 			return new ResponseEntity(getErrorResponse("400", ex.getMessage()), HttpStatus.BAD_REQUEST);
 		}
 	}
+	
+	@RequestMapping(value="/flight/{number}", method = RequestMethod.DELETE)
+	public ResponseEntity deleteFlight(@PathVariable("number") String number) {
+		try {
+			Flight flight = flightservice.getFlight(number);
+			if(flight != null) {
+				List<Passenger> passengers = flight.getPassengers();
+				if(passengers == null || passengers.size() == 0) {
+					flightservice.deleteFlight(flight);
+					return new ResponseEntity(getErrorResponse("200", "Flight with number "+number+" deleted successfully."), HttpStatus.OK);
+				} else {
+					return new ResponseEntity(getErrorResponse("400", "Flight with number "+number+" cannot be deleted. It has one or more reservations"), HttpStatus.BAD_REQUEST);
+				}
+					
+			} else {
+				return new ResponseEntity(getErrorResponse("404", "Flight with number "+number+" not found"), HttpStatus.NOT_FOUND);
+			}
+				
+		} catch (Exception ex) {
+			return new ResponseEntity(getErrorResponse("400", ex.getMessage()), HttpStatus.BAD_REQUEST);
+		}
+	}	
 }

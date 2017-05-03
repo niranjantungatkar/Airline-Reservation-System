@@ -71,4 +71,10 @@ public class FlightService {
 		return result;
 	}
 
+
+
+	public void deleteFlight(Flight flight) {
+		flightdao.deleteFlight(flight);
+	}
+
 }

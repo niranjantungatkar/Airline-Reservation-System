@@ -27,4 +27,8 @@ public class FlightDAO {
 	public Flight createFlight(Flight flight) {
 		return entityManager.merge(flight);
 	}
+	
+	public void deleteFlight(Flight flight) {
+		entityManager.remove(flight);
+	}
 }
