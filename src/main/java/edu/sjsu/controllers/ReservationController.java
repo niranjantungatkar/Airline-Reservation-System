@@ -73,6 +73,7 @@ public class ReservationController {
 			reservationservice.createReservation(pid, flightLists);
 			return null;
 		} catch (Exception e) {
+			e.printStackTrace(System.out);
 			return new ResponseEntity(getErrorResponse("400", e.getMessage()), HttpStatus.BAD_REQUEST);
 		}
 	}

@@ -34,26 +34,34 @@ public class FlightService {
 		return flights;
 	}
 
-	public Boolean checkOverlap(String[] flightLists) {
+	public Boolean checkOverlap(String[] flightLists) throws Exception {
 		List<Flight> flights = getFlights(flightLists);
 
 		Boolean case1 = null, case2 = null;
+		try {
 
-		for (int i = 0; i < flights.size(); i++) {
-			Flight flight = flights.get(i);
-			for (int j = 0; j < flights.size(); j++) {
-				if (i != j) {
-					Flight checkFlight = flights.get(j);
-					case1 = (flight.getDepartureTime().after(checkFlight.getDepartureTime()) || flight.getDepartureTime().equals(checkFlight.getDepartureTime())) 
-							&& (flight.getDepartureTime().before(checkFlight.getArrivalTime()) || flight.getDepartureTime().equals(checkFlight.getArrivalTime()));
-					case2 = (flight.getArrivalTime().after(checkFlight.getDepartureTime()) || flight.getArrivalTime().equals(checkFlight.getDepartureTime()) )
-							&& (flight.getArrivalTime().before(checkFlight.getArrivalTime()) || flight.getArrivalTime().equals(checkFlight.getArrivalTime()));
-					if (case1 || case2) {
-						return true;
+			for (int i = 0; i < flights.size(); i++) {
+				Flight flight = flights.get(i);
+				for (int j = 0; j < flights.size(); j++) {
+					if (i != j) {
+						Flight checkFlight = flights.get(j);
+						case1 = (flight.getDepartureTime().after(checkFlight.getDepartureTime())
+								|| flight.getDepartureTime().equals(checkFlight.getDepartureTime()))
+								&& (flight.getDepartureTime().before(checkFlight.getArrivalTime())
+										|| flight.getDepartureTime().equals(checkFlight.getArrivalTime()));
+						case2 = (flight.getArrivalTime().after(checkFlight.getDepartureTime())
+								|| flight.getArrivalTime().equals(checkFlight.getDepartureTime()))
+								&& (flight.getArrivalTime().before(checkFlight.getArrivalTime())
+										|| flight.getArrivalTime().equals(checkFlight.getArrivalTime()));
+						if (case1 || case2) {
+							return true;
+						}
+
 					}
-
 				}
 			}
+		} catch (NullPointerException e) {
+			throw new Exception("Flight does not exists. Please check again");
 		}
 		return false;
 	}
@@ -70,8 +78,6 @@ public class FlightService {
 		}
 		return result;
 	}
-
-
 
 	public void deleteFlight(Flight flight) {
 		flightdao.deleteFlight(flight);

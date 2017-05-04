@@ -28,7 +28,7 @@ public class ReservationService {
 	/*
 	 * Returns true if there is any overlap between existing flights
 	 */
-	public boolean checkOverlapExisting(String passengerid, String[] flightLists) {
+	public boolean checkOverlapExisting(String passengerid, String[] flightLists) throws Exception {
 		Passenger passenger = passengerService.getPassenger(passengerid);
 		List<Reservation> reservations = reservationDAO.getReservations(passenger);
 		List<String> allFlights = new ArrayList<>();
