@@ -1,9 +1,11 @@
 package edu.sjsu.dataaccess;
 
+import java.util.HashMap;
 import java.util.List;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.TypedQuery;
 import javax.transaction.Transactional;
 
 import org.springframework.stereotype.Repository;
@@ -50,5 +52,10 @@ public class ReservationDAO {
 				.createQuery("Select r from Reservation r where r.passenger = :pid AND r.orderNumber != :number")
 				.setParameter("pid", passenger).setParameter("number", number).getResultList();
 		return reservations;
+	}
+	
+	public void searchReservations(HashMap<String, String> parameters){
+		//TypedQuery<Object[]> q = entityManager.createQuery()
+		
 	}
 }

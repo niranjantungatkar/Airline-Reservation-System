@@ -6,6 +6,7 @@ import java.util.Map;
 import javax.websocket.server.PathParam;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Required;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -93,12 +94,43 @@ public class ReservationController {
 
 			reservationservice.updateReservation(number, flightsAdded, flightsRemoved);
 		} catch (Exception e) {
-			System.out.println("ahahahahahahhahahahahahahahah");
-			e.printStackTrace(System.out);
 			return new ResponseEntity(getErrorResponse("400", e.getMessage()), HttpStatus.BAD_REQUEST);
 		}
 
 		return null;
+	}
+
+	// passengerId=XX&from=YY&to=ZZ&flightNumber=GH2Z1
+	@RequestMapping(value = "/reservation")
+	public Reservation searchReservation(@RequestParam(value = "passengerId", required = false) String passengerId,
+			@RequestParam(value = "from", required = false) String from,
+			@RequestParam(value = "to", required = false) String to,
+			@RequestParam(value = "flightNumber", required = false) String flightNumber) {
+		HashMap<String, String> parameters = new HashMap<>();
+		if (passengerId != null)
+			parameters.put("passengerId", passengerId);
+		if (from != null)
+			parameters.put("from", from);
+		if (to != null)
+			parameters.put("to", to);
+		if (flightNumber != null)
+			parameters.put("flightNumber", flightNumber);
+		System.out.println("I came here buddy" + from);
+		reservationservice.searchReservations(parameters);
+		// TODO: Return success message in xml here
+		return null;
+	}
+
+	@SuppressWarnings("unchecked")
+	@RequestMapping(value = "/reservation/{number}", method = RequestMethod.DELETE)
+	public ResponseEntity cancelReservation(@PathVariable(value = "number") String number) {
+		try {
+			reservationservice.cancelReservation(number);
+			// TODO : Return Success message in xml
+			return null;
+		} catch (Exception e) {
+			return new ResponseEntity(getErrorResponse("400", e.getMessage()), HttpStatus.BAD_REQUEST);
+		}
 	}
 
 	@RequestMapping(value = "/reservation/{orderNumber}", method = RequestMethod.GET)

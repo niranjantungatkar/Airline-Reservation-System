@@ -3,7 +3,11 @@ package edu.sjsu.services;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+
+import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -130,7 +134,7 @@ public class ReservationService {
 
 		List<Flight> updatedFlights = flightService
 				.getFlights(allFlightNumbers.toArray(new String[allFlightNumbers.size()]));
-		
+
 		reservation.setFlights(updatedFlights);
 
 		// Update the price of the updated reservation
@@ -183,6 +187,28 @@ public class ReservationService {
 			flight.setSeatsLeft(flight.getSeatsLeft() - 1);
 			flightService.createFlight(flight);
 		}
+	}
+
+	public void searchReservations(HashMap<String, String> parameters) {
+		// TypedQuery<Object[]> q = "";
+	}
+
+	public void cancelReservation(String number) throws Exception {
+		Reservation reservation = reservationDAO.getReservation(number);
+		if (reservation == null) {
+			throw new Exception("Reservation with number " + number + " does not exists");
+		}
+		List<Flight> flights = reservation.getFlights();
+		Passenger passenger = reservation.getPassenger();
+
+		// Remove the passenger from the flights and update the seatsLeft in
+		// each flight
+		for (Flight flight : flights) {
+			flight.getPassengers().remove(passenger);
+			flight.setSeatsLeft(flight.getSeatsLeft() + 1);
+			flightService.createFlight(flight);
+		}
+		reservationDAO.deleteReservation(reservation);
 	}
 
 	public Reservation getReservation(String orderNumber) {
