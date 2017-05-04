@@ -102,7 +102,7 @@ public class ReservationController {
 
 	// passengerId=XX&from=YY&to=ZZ&flightNumber=GH2Z1
 	@RequestMapping(value = "/reservation")
-	public Reservation searchReservation(@RequestParam(value = "passengerId", required = false) String passengerId,
+	public ResponseEntity searchReservation(@RequestParam(value = "passengerId", required = false) String passengerId,
 			@RequestParam(value = "from", required = false) String from,
 			@RequestParam(value = "to", required = false) String to,
 			@RequestParam(value = "flightNumber", required = false) String flightNumber) {
@@ -115,8 +115,12 @@ public class ReservationController {
 			parameters.put("to", to);
 		if (flightNumber != null)
 			parameters.put("flightNumber", flightNumber);
-		System.out.println("I came here buddy" + from);
-		reservationservice.searchReservations(parameters);
+		try{
+			reservationservice.searchReservations(parameters);
+		}catch(Exception e){
+			return new ResponseEntity(getErrorResponse("400", e.getMessage()), HttpStatus.BAD_REQUEST);
+		}
+		
 		// TODO: Return success message in xml here
 		return null;
 	}

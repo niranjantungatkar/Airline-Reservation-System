@@ -189,8 +189,8 @@ public class ReservationService {
 		}
 	}
 
-	public void searchReservations(HashMap<String, String> parameters) {
-		// TypedQuery<Object[]> q = "";
+	public void searchReservations(HashMap<String, String> parameters) throws Exception {
+		reservationDAO.searchReservations(parameters);
 	}
 
 	public void cancelReservation(String number) throws Exception {

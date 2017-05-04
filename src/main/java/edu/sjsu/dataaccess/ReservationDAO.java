@@ -5,12 +5,9 @@ import java.util.List;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import javax.persistence.TypedQuery;
 import javax.transaction.Transactional;
 
 import org.springframework.stereotype.Repository;
-
-import edu.sjsu.models.Flight;
 import edu.sjsu.models.Passenger;
 import edu.sjsu.models.Reservation;
 
@@ -53,9 +50,16 @@ public class ReservationDAO {
 				.setParameter("pid", passenger).setParameter("number", number).getResultList();
 		return reservations;
 	}
-	
-	public void searchReservations(HashMap<String, String> parameters){
-		//TypedQuery<Object[]> q = entityManager.createQuery()
-		
+
+	@SuppressWarnings("unchecked")
+	public void searchReservations(HashMap<String, String> parameters) throws Exception {
+
+		List<Reservation> reservations = entityManager
+				.createQuery("select r from Reservation r JOIN r.flights f JOIN r.passenger p").getResultList();
+		if(reservations.size() == 0){
+			throw new Exception("No reservations found for given criteria");
+		}
+		System.out.println(reservations.size());
+
 	}
 }
