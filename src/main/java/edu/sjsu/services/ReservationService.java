@@ -3,11 +3,8 @@ package edu.sjsu.services;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
-
-import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -189,7 +186,8 @@ public class ReservationService {
 		}
 	}
 
-	public void searchReservations(HashMap<String, String> parameters) throws Exception {
+	public void searchReservations(LinkedHashMap<String, String> parameters) throws Exception {
+		// TODO : getting list of reservations here. Need to format in required xml structure
 		reservationDAO.searchReservations(parameters);
 	}
 

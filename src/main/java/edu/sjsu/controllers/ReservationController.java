@@ -1,12 +1,10 @@
 package edu.sjsu.controllers;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
-import javax.websocket.server.PathParam;
-
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Required;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -101,12 +99,13 @@ public class ReservationController {
 	}
 
 	// passengerId=XX&from=YY&to=ZZ&flightNumber=GH2Z1
-	@RequestMapping(value = "/reservation")
+	@RequestMapping(value = "/reservation", method=RequestMethod.GET)
 	public ResponseEntity searchReservation(@RequestParam(value = "passengerId", required = false) String passengerId,
 			@RequestParam(value = "from", required = false) String from,
 			@RequestParam(value = "to", required = false) String to,
 			@RequestParam(value = "flightNumber", required = false) String flightNumber) {
-		HashMap<String, String> parameters = new HashMap<>();
+		LinkedHashMap<String, String> parameters = new LinkedHashMap<>();
+
 		if (passengerId != null)
 			parameters.put("passengerId", passengerId);
 		if (from != null)

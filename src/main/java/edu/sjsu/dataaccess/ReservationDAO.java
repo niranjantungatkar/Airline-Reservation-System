@@ -1,6 +1,8 @@
 package edu.sjsu.dataaccess;
 
-import java.util.HashMap;
+import java.util.ArrayList;
+
+import java.util.LinkedHashMap;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -29,6 +31,18 @@ public class ReservationDAO {
 	}
 
 	/*
+	 * Returns list of reservations from list of reservation number
+	 */
+	public List<Reservation> getReservations(List<String> ids) {
+		List<Reservation> reservations = new ArrayList<>();
+		for (String id : ids) {
+			Reservation reservation = getReservation(id);
+			reservations.add(reservation);
+		}
+		return reservations;
+	}
+
+	/*
 	 * Note : this method is used by passengerService while deleting a passenger
 	 */
 	public void deleteReservation(Reservation reservation) {
@@ -52,14 +66,52 @@ public class ReservationDAO {
 	}
 
 	@SuppressWarnings("unchecked")
-	public void searchReservations(HashMap<String, String> parameters) throws Exception {
+	public List<Reservation> searchReservations(LinkedHashMap<String, String> parameters) throws Exception {
 
-		List<Reservation> reservations = entityManager
-				.createQuery("select r from Reservation r JOIN r.flights f JOIN r.passenger p").getResultList();
-		if(reservations.size() == 0){
+		StringBuilder query = new StringBuilder();
+		query.append("select distinct r.orderNumber from Reservation r JOIN r.flights f JOIN r.passenger p");
+		boolean firstCame = false;
+
+		if (parameters.containsKey("passengerId")) {
+			if (!firstCame) {
+				query.append(" where p.id = '" + parameters.get("passengerId") + "'");
+				firstCame = true;
+			} else {
+				query.append(" AND p.id = '" + parameters.get("passengerId") + "'");
+			}
+		}
+		if (parameters.containsKey("from")) {
+			if (!firstCame) {
+				query.append(" where f.from = '" + parameters.get("from") + "'");
+				firstCame = true;
+			} else {
+				query.append(" AND f.from = '" + parameters.get("from") + "'");
+			}
+		}
+		if (parameters.containsKey("to")) {
+			if (!firstCame) {
+				query.append(" where f.to = '" + parameters.get("to") + "'");
+				firstCame = true;
+			} else {
+				query.append(" AND f.to = '" + parameters.get("to") + "'");
+			}
+		}
+		if (parameters.containsKey("flightNumber")) {
+			if (!firstCame) {
+				query.append(" where f.number = '" + parameters.get("f.number") + "'");
+				firstCame = true;
+			} else {
+				query.append(" AND f.number = '" + parameters.get("f.number") + "'");
+			}
+		}
+
+		String str = query.toString();
+		List<String> reservationIds = entityManager.createQuery(str).getResultList();
+		if (reservationIds.size() == 0) {
 			throw new Exception("No reservations found for given criteria");
 		}
-		System.out.println(reservations.size());
-
+		List<Reservation> reservations = getReservations(reservationIds);
+		return reservations;
+		
 	}
 }
