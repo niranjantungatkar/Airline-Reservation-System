@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.json.JSONObject;
+import org.json.XML;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -39,52 +40,42 @@ public class FlightController {
 	@Autowired
 	private ReservationService reservationService;
 	
-	public Map<String, Object> buildFlightResponse(Flight flight) throws ParseException {
-		
-		SimpleDateFormat target = new SimpleDateFormat("yyyy-MM-dd-HH");
-		Map<String, Object> response = new LinkedHashMap<>();
-		
-		response.put("flightNumber", flight.getNumber());
-		response.put("price", flight.getPrice() );
-		response.put("from", flight.getFrom());
-		response.put("to", flight.getTo());
-		response.put("departureTime", target.format(flight.getDepartureTime()));
-		response.put("arrivalTime", target.format(flight.getArrivalTime()));
-		response.put("description", flight.getDescription());
-		response.put("seatsLeft", flight.getSeatsLeft());
-		response.put("plane",flight.getPlane());
-		
-		if(flight.getPassengers() != null && flight.getPassengers().size() > 0) {
-			List<Map<String, Object>> passengers = new ArrayList<>();
-			for(Passenger p : flight.getPassengers()) {
-				Map<String, Object> indPassenger = new LinkedHashMap<>();
-				indPassenger.put("id", p.getId());
-				indPassenger.put("firstname", p.getFirstname());
-				indPassenger.put("lastname", p.getLastname());
-				indPassenger.put("age", p.getAge());
-				indPassenger.put("gender", p.getGender());
-				indPassenger.put("phone", p.getPhone());
-				passengers.add(indPassenger);	
+	public String [] getFlightListArray(List<Passenger> passengers, String flightnumber) {
+		List<String> flightList = new ArrayList<>();
+		for(Passenger p : passengers) {
+			List<Reservation> reservations = reservationService.getReservations(p);
+			for(Reservation r : reservations) {
+				List<Flight> flights = r.getFlights();
+				for(Flight f : flights) {
+					if(f.getNumber() == flightnumber)
+						continue;
+					else {
+						flightList.add(f.getNumber());
+					}
+				}
 			}
-			/*HashMap<String, Object> pMap = new LinkedHashMap<>();
-			pMap.put("passenger", passengers);*/
-			response.put("passengers",passengers);
 		}
-		return response;
+		return flightList.toArray(new String[flightList.size()]);
 	}
-	
-	@SuppressWarnings("rawtypes")
-	public HashMap<String, Map> getErrorResponse(String errorcode, String error) {
-		HashMap<String, String> errorMap = new HashMap<String, String>();
-		errorMap.put("code", errorcode);
-		errorMap.put("msg", error);
-		HashMap<String, Map> errorResponse = new HashMap<String, Map>();
-		errorResponse.put("Badrequest", errorMap);
-		return errorResponse;
-	}
-	
+
+	/**
+	 * CREATE OR UPDATE FLIGHT
+	 * 
+	 * @param flightnumber
+	 * @param price
+	 * @param from
+	 * @param to
+	 * @param departureTime
+	 * @param description
+	 * @param capacity
+	 * @param model
+	 * @param manufacturer
+	 * @param arrivalTime
+	 * @param yearOfManufacture
+	 * @return
+	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	@RequestMapping(value = "/flight/{flightNumber}", method = RequestMethod.POST )
+	@RequestMapping(value = "/flight/{flightNumber}", method = RequestMethod.POST)
 	public ResponseEntity createFlight(@PathVariable("flightNumber") String flightnumber,
 							   		   @RequestParam("price") int price,
 							   		   @RequestParam("from") String from,
@@ -100,31 +91,19 @@ public class FlightController {
 			
 			Flight updFlight = flightservice.getFlight(flightnumber); 
 			if( updFlight != null ) {
-				
 				List<Passenger> passengers = updFlight.getPassengers();
-				int seatsLeft = updFlight.getSeatsLeft();
 				if(updFlight.getPlane().getCapacity() - updFlight.getSeatsLeft() > capacity) {
-					return new ResponseEntity(getErrorResponse("400", "Reservation count greater than capacity"), HttpStatus.BAD_REQUEST);
+					HttpHeaders responseHeaders = new HttpHeaders();
+					responseHeaders.setContentType(MediaType.APPLICATION_JSON);
+					return new ResponseEntity(getErrorResponse("400", "Reservation count greater than capacity"), responseHeaders, HttpStatus.BAD_REQUEST);
 				} else {
-					List<String> flightList = new ArrayList<>();
-					for(Passenger p : passengers) {
-						List<Reservation> reservations = reservationService.getReservations(p);
-						for(Reservation r : reservations) {
-							List<Flight> flights = r.getFlights();
-							for(Flight f : flights) {
-								if(f.getNumber() == flightnumber)
-									continue;
-								else {
-									flightList.add(f.getNumber());
-								}
-							}
-						}
-					}
-					
-					if( flightservice.checkOverlap( (String []) flightList.toArray() ) ) {
-						return new ResponseEntity(getErrorResponse("400", "Passenger flights overlap! Can't  change the Flight arrival Departure time"), HttpStatus.BAD_REQUEST);
+					if( flightservice.checkOverlap(getFlightListArray(passengers, flightnumber))) {
+						HttpHeaders responseHeaders = new HttpHeaders();
+						responseHeaders.setContentType(MediaType.APPLICATION_JSON);
+						return new ResponseEntity(getErrorResponse("400", "Passenger flights overlap! Can't  change the Flight arrival Departure time") 
+												  ,responseHeaders
+												  ,HttpStatus.BAD_REQUEST);
 					} else {
-						
 						updFlight.setSeatsLeft(capacity - ( updFlight.getPlane().getCapacity() - updFlight.getSeatsLeft() ) );
 						
 						DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd-HH");
@@ -136,21 +115,21 @@ public class FlightController {
 						plane.setManufacturer(manufacturer);
 						plane.setModel(model);
 						plane.setYearOfManufacture(yearOfManufacture);
-						
 						updFlight.setNumber(flightnumber);
 						updFlight.setPrice(price);
 						updFlight.setFrom(from);
 						updFlight.setTo(to);
-						
 						updFlight.setDepartureTime(depT);
 						updFlight.setArrivalTime(arrT);
 						updFlight.setDescription(description);
 						updFlight.setPlane(plane);
 						
-						return new ResponseEntity(buildFlightResponse(flightservice.createFlight(updFlight)), HttpStatus.OK);
+						JSONObject responseFlight = new JSONObject(buildFlightResponse(flightservice.createFlight(updFlight)));
+						HttpHeaders responseHeaders = new HttpHeaders();
+						responseHeaders.setContentType(MediaType.APPLICATION_XML);
+						return new ResponseEntity(XML.toString(responseFlight), responseHeaders, HttpStatus.OK);
 					}
 				}
-				
 			} else {
 				Flight flight = new Flight();
 				DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd-HH");
@@ -172,16 +151,21 @@ public class FlightController {
 				flight.setArrivalTime(arrT);
 				flight.setDescription(description);
 				flight.setPlane(plane);
-				return new ResponseEntity(buildFlightResponse(flightservice.createFlight(flight)), HttpStatus.OK);
+				
+				JSONObject responseFlight = new JSONObject(buildFlightResponse(flightservice.createFlight(flight)));
+				HttpHeaders responseHeaders = new HttpHeaders();
+				responseHeaders.setContentType(MediaType.APPLICATION_XML);
+				return new ResponseEntity(XML.toString(responseFlight), responseHeaders, HttpStatus.OK);
 			}
 		} catch(Exception ex) {
-			ex.printStackTrace();
-			return new ResponseEntity(getErrorResponse("400", ex.getMessage()),HttpStatus.BAD_REQUEST);
+			HttpHeaders responseHeaders = new HttpHeaders();
+			responseHeaders.setContentType(MediaType.APPLICATION_XML);
+			return new ResponseEntity(getErrorResponse("400", ex.getMessage()), responseHeaders, HttpStatus.BAD_REQUEST);
 		}
 		
 	}
 	
-	/**GET Flight
+	/**GET FLIGHT
 	 * @author tungatkarniranjan
 	 * @param number
 	 * @param xml
@@ -191,12 +175,24 @@ public class FlightController {
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@RequestMapping(value="/flight/{number}")
 	public ResponseEntity getFlight(@PathVariable("number") String number, 
-							@RequestParam(value="xml",required = false) String xml) {
+							        @RequestParam(value="xml",required = false) String xml) {
 		try {
 			if(flightservice.getFlight(number) != null) {
-				return new ResponseEntity(buildFlightResponse(flightservice.getFlight(number)), HttpStatus.OK);	
+				if(xml != null) {
+					JSONObject flight = new JSONObject(buildFlightResponse(flightservice.getFlight(number)));
+					HttpHeaders responseHeaders = new HttpHeaders();
+					responseHeaders.setContentType(MediaType.APPLICATION_XML);
+					return new ResponseEntity(XML.toString(flight), responseHeaders, HttpStatus.OK);
+				} else {
+					JSONObject flight = new JSONObject(buildFlightResponse(flightservice.getFlight(number)));
+					HttpHeaders responseHeaders = new HttpHeaders();
+					responseHeaders.setContentType(MediaType.APPLICATION_JSON);
+					return new ResponseEntity(flight.toString(), responseHeaders, HttpStatus.OK);
+				}	
 			} else {
-				return new ResponseEntity(getErrorResponse("404", "Flight with number "+number+" not found"), HttpStatus.NOT_FOUND);
+				HttpHeaders responseHeaders = new HttpHeaders();
+				responseHeaders.setContentType(MediaType.APPLICATION_JSON);
+				return new ResponseEntity(getErrorResponse("404", "Flight with number "+number+" not found"), responseHeaders, HttpStatus.NOT_FOUND);
 			}
 		} catch(Exception ex) {
 			ex.printStackTrace();
@@ -229,5 +225,56 @@ public class FlightController {
 		} catch (Exception ex) {
 			return new ResponseEntity(getErrorResponse("400", ex.getMessage()), HttpStatus.BAD_REQUEST);
 		}
-	}	
+	}
+	
+	
+	public Map<String, Object> buildFlightResponse(Flight flight) throws ParseException {
+		
+		SimpleDateFormat target = new SimpleDateFormat("yyyy-MM-dd-HH");
+		Map<String, Object> response = new LinkedHashMap<>();
+		
+		response.put("flightNumber", flight.getNumber());
+		response.put("price", flight.getPrice() );
+		response.put("from", flight.getFrom());
+		response.put("to", flight.getTo());
+		response.put("departureTime", target.format(flight.getDepartureTime()));
+		response.put("arrivalTime", target.format(flight.getArrivalTime()));
+		response.put("description", flight.getDescription());
+		response.put("seatsLeft", flight.getSeatsLeft());
+		response.put("plane",flight.getPlane());
+		
+		if(flight.getPassengers() != null && flight.getPassengers().size() > 0) {
+			List<Map<String, Object>> passengers = new ArrayList<>();
+			for(Passenger p : flight.getPassengers()) {
+				Map<String, Object> indPassenger = new LinkedHashMap<>();
+				indPassenger.put("id", p.getId());
+				indPassenger.put("firstname", p.getFirstname());
+				indPassenger.put("lastname", p.getLastname());
+				indPassenger.put("age", p.getAge());
+				indPassenger.put("gender", p.getGender());
+				indPassenger.put("phone", p.getPhone());
+				passengers.add(indPassenger);	
+			}
+			HashMap<String, Object> pMap = new LinkedHashMap<>();
+			pMap.put("passenger", passengers);
+			response.put("passengers",pMap);
+		}
+		Map<String, Object> Response = new LinkedHashMap<>();
+		Response.put("flight", response);
+		return Response;
+	}
+	
+	@SuppressWarnings("rawtypes")
+	public HashMap<String, Map> getErrorResponse(String errorcode, String error) {
+		HashMap<String, String> errorMap = new HashMap<String, String>();
+		errorMap.put("code", errorcode);
+		errorMap.put("msg", error);
+		HashMap<String, Map> errorResponse = new HashMap<String, Map>();
+		errorResponse.put("Badrequest", errorMap);
+		return errorResponse;
+	}
+	
+	
+	
+	
 }

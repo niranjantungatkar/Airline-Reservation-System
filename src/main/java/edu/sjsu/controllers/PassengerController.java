@@ -1,7 +1,6 @@
 package edu.sjsu.controllers;
 
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.request;
-
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -11,17 +10,15 @@ import java.util.Map;
 import org.json.JSONObject;
 import org.json.XML;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Required;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import edu.sjsu.services.PassengerService;
 import edu.sjsu.services.ReservationService;
@@ -37,7 +34,7 @@ public class PassengerController {
 	private ReservationService reservationService;
 	
 	/** 
-	 * CREATE Passenger - /passenger - METHOD - POST
+	 * CREATE PASSENGER - /passenger - METHOD - POST
 	 * @author tungatkarniranjan
 	 * @param firstname
 	 * @param lastname
@@ -63,84 +60,21 @@ public class PassengerController {
 			newPassenger.setPhone(phone);
 			
 			passengerService.createPassenger(newPassenger);
-			return new ResponseEntity(newPassenger, HttpStatus.OK);
+			HttpHeaders responseHeaders = new HttpHeaders();
+			responseHeaders.setContentType(MediaType.APPLICATION_JSON);
+			return new ResponseEntity(newPassenger, responseHeaders, HttpStatus.OK);
 		
 		} catch(Exception ex) {
-			return new ResponseEntity(getErrorResponse("400",ex.getMessage()), HttpStatus.BAD_REQUEST);	
+			HttpHeaders responseHeaders = new HttpHeaders();
+			responseHeaders.setContentType(MediaType.APPLICATION_JSON);
+			return new ResponseEntity(getErrorResponse("400",ex.getMessage()), responseHeaders, HttpStatus.BAD_REQUEST);	
 		}	
 	}
 	
 	
 	/**
-	 * Builds a hashmap for bad requests.
-	 * @param errorcode
-	 * @param error
-	 * @return HashMap<String, String>
-	 */
-	@SuppressWarnings("rawtypes")
-	public HashMap<String, Map> getErrorResponse(String errorcode, String error) {
-		HashMap<String, String> errorMap = new HashMap<String, String>();
-		errorMap.put("code", errorcode);
-		errorMap.put("msg", error);
-		HashMap<String, Map> errorResponse = new HashMap<String, Map>();
-		errorResponse.put("Badrequest", errorMap);
-		return errorResponse;
-	}
-	
-	public Map<String, Object> buildPassengerResponse(Passenger passenger, List<Reservation> reservations) {
-		
-		Map<String, Object> response = new LinkedHashMap<>();
-		response.put("id", passenger.getId());
-		response.put("firstname", passenger.getFirstname());
-		response.put("lastname", passenger.getLastname());
-		response.put("age", passenger.getAge());
-		response.put("gender", passenger.getGender());
-		response.put("phone", passenger.getPhone());
-		
-		List<Map<String, Object>> reservation = new ArrayList<>();
-		for(Reservation r : reservations) {
-			Map<String, Object> indReservation = new LinkedHashMap<>();
-			indReservation.put("orderNumber", r.getOrderNumber());
-			indReservation.put("price", r.getPrice());
-			
-			List<Map<String, Object>>flight = new ArrayList<>();
-			for(Flight f : r.getFlights()) {
-				Map<String, Object> indFlight = new LinkedHashMap<>();
-				indFlight.put("number", f.getNumber());
-				indFlight.put("price", f.getPrice());
-				indFlight.put("from", f.getFrom());
-				indFlight.put("to", f.getTo());
-				indFlight.put("departureTime", f.getDepartureTime());
-				indFlight.put("arrivalTime", f.getArrivalTime());
-				indFlight.put("description", f.getDescription());
-				indFlight.put("plane", f.getPlane());
-				//Map<String, Object> indFlMap = new HashMap<>();
-				//indFlMap.put("flight", indFlight);
-				//flight.add(indFlMap);
-				flight.add(indFlight);
-			}
-			
-			HashMap<String, Object> flMap = new LinkedHashMap<>();
-			flMap.put("flight", flight);
-			
-			indReservation.put("flights", flMap);
-			//Map<String, Object> indRvMap = new HashMap<>();
-			//indRvMap.put("reservation", indReservation);
-			reservation.add(indReservation);
-		}
-		HashMap<String, Object> rMap = new LinkedHashMap<>();
-		rMap.put("reservation", reservation);
-		
-		response.put("reservations",rMap);
-		Map<String, Object> testResponse = new LinkedHashMap<>();
-		testResponse.put("passenger", response);
-		return testResponse;
-	}
-	
-	
-	/**
-	 * GET Passenger - /passenger/{id}?xml=true - METHOD -GET
-	 * Gets ID as pathvariable and xml as request param. Returns JSON
+	 * GET PASSENGER - /passenger/{id}?xml=true - METHOD -GET
+	 * Gets ID as pathvariable and xml as request param. Returns JSON or XML
 	 * @param id
 	 * @param xml
 	 * @return 
@@ -158,23 +92,32 @@ public class PassengerController {
 				
 				JSONObject json = new JSONObject(buildPassengerResponse(passenger, reservations));
 			
-				if(xml != null)
-					return new ResponseEntity(XML.toString(json), HttpStatus.OK);
-				else
-					return new ResponseEntity(json.toString(), HttpStatus.OK);
-				
+				if(xml != null) {
+					HttpHeaders responseHeaders = new HttpHeaders();
+					responseHeaders.setContentType(MediaType.APPLICATION_XML);
+					return new ResponseEntity(XML.toString(json), responseHeaders, HttpStatus.OK);
+				}
+				else {
+					HttpHeaders responseHeaders = new HttpHeaders();
+					responseHeaders.setContentType(MediaType.APPLICATION_JSON);
+					return new ResponseEntity(json.toString(), responseHeaders, HttpStatus.OK);
+				}	
 			}
 			else {
+				HttpHeaders responseHeaders = new HttpHeaders();
+				responseHeaders.setContentType(MediaType.APPLICATION_JSON);
 				String error = "Sorry, the requested passenger with id "+id+" does not exist";
-				return new ResponseEntity(getErrorResponse("404",error), HttpStatus.NOT_FOUND);
+				return new ResponseEntity(getErrorResponse("404",error), responseHeaders, HttpStatus.NOT_FOUND);
 			}
 		} catch (Exception ex) {
-			return new ResponseEntity(getErrorResponse("400", ex.getMessage()), HttpStatus.BAD_REQUEST);
+			HttpHeaders responseHeaders = new HttpHeaders();
+			responseHeaders.setContentType(MediaType.APPLICATION_JSON);
+			return new ResponseEntity(getErrorResponse("400", ex.getMessage()), responseHeaders, HttpStatus.BAD_REQUEST);
 		}
 	}
 	
 	/**
-	 * UPDATE Passenger - /passenger/{id} - METHOD - PUT
+	 * UPDATE PASSENGER - /passenger/{id} - METHOD - PUT
 	 * @author tungatkarniranjan
 	 * @param id
 	 * @param firstname
@@ -192,22 +135,29 @@ public class PassengerController {
 									 @RequestParam("gender") String gender,
 									 @RequestParam("phone") String phone) {
 		try{
-			System.out.println("PUT");
-			if(passengerService.getPassenger(id) != null) {
-				Passenger updPassenger = new Passenger();
+			Passenger updPassenger = passengerService.getPassenger(id); 
+			if(updPassenger != null) {
+				List<Reservation> reservations = reservationService.getReservations(updPassenger);
 				updPassenger.setId(id);
 				updPassenger.setFirstname(firstname);
 				updPassenger.setLastname(lastname);
 				updPassenger.setAge(age);
 				updPassenger.setGender(gender);
 				updPassenger.setPhone(phone);
-				return new ResponseEntity(passengerService.updatePassenger(updPassenger), HttpStatus.OK);
+				JSONObject updPassengerJson = new JSONObject(buildPassengerResponse(passengerService.updatePassenger(updPassenger), reservations));
+				HttpHeaders responseHeaders = new HttpHeaders();
+				responseHeaders.setContentType(MediaType.APPLICATION_JSON);
+				return new ResponseEntity(updPassengerJson.toString(), responseHeaders, HttpStatus.OK);
 			} else {
+				HttpHeaders responseHeaders = new HttpHeaders();
+				responseHeaders.setContentType(MediaType.APPLICATION_JSON);
 				String error = "Passenger with id "+id+" does not exist";
-				return new ResponseEntity(getErrorResponse("404", error), HttpStatus.NOT_FOUND);
+				return new ResponseEntity(getErrorResponse("404", error), responseHeaders, HttpStatus.NOT_FOUND);
 			}
 		} catch (Exception ex) {
-			return new ResponseEntity(getErrorResponse("400", ex.getMessage()), HttpStatus.BAD_REQUEST);
+			HttpHeaders responseHeaders = new HttpHeaders();
+			responseHeaders.setContentType(MediaType.APPLICATION_JSON);
+			return new ResponseEntity(getErrorResponse("400", ex.getMessage()), responseHeaders, HttpStatus.BAD_REQUEST);
 		}	
 	}
 	
@@ -220,19 +170,81 @@ public class PassengerController {
 	@RequestMapping(value = "/passenger/{id}", method = RequestMethod.DELETE)
 	public ResponseEntity deletePassenger(@PathVariable("id") String id) {
 		try {
-			System.out.println("Delete");
+			HttpHeaders responseHeaders = new HttpHeaders();
+			responseHeaders.setContentType(MediaType.APPLICATION_JSON);
 			if(passengerService.deletePassenger(id))
-				return new ResponseEntity(getErrorResponse("200", "Passenger with "+id+" deleted successfully."), HttpStatus.OK);
+				return new ResponseEntity(getErrorResponse("200", "Passenger with "+id+" deleted successfully."), responseHeaders, HttpStatus.OK);
 			else
-				return new ResponseEntity(getErrorResponse("404", "Passenger with "+id+" not found."), HttpStatus.NOT_FOUND);
+				return new ResponseEntity(getErrorResponse("404", "Passenger with "+id+" not found."), responseHeaders, HttpStatus.NOT_FOUND);
 			
 		} catch(Exception ex) {
-			return new ResponseEntity(getErrorResponse("400", ex.getMessage()), HttpStatus.BAD_REQUEST);
+			HttpHeaders responseHeaders = new HttpHeaders();
+			responseHeaders.setContentType(MediaType.APPLICATION_JSON);
+			return new ResponseEntity(getErrorResponse("400", ex.getMessage()), responseHeaders, HttpStatus.BAD_REQUEST);
 		}
 	}
 	
-	@RequestMapping(value="/passengers")
-	public List<Passenger> getAll() {
-	      return passengerService.getAll();
+	/**
+	 * Builds a hashmap for bad requests.
+	 * @param errorcode
+	 * @param error
+	 * @return HashMap<String, String>
+	 */
+	@SuppressWarnings("rawtypes")
+	public HashMap<String, Map> getErrorResponse(String errorcode, String error) {
+		HashMap<String, String> errorMap = new HashMap<String, String>();
+		errorMap.put("code", errorcode);
+		errorMap.put("msg", error);
+		HashMap<String, Map> errorResponse = new HashMap<String, Map>();
+		errorResponse.put("Badrequest", errorMap);
+		return errorResponse;
+	}
+	
+	
+	//Move to utils
+	public Map<String, Object> buildPassengerResponse(Passenger passenger, List<Reservation> reservations) {
+		
+		Map<String, Object> response = new LinkedHashMap<>();
+		response.put("id", passenger.getId());
+		response.put("firstname", passenger.getFirstname());
+		response.put("lastname", passenger.getLastname());
+		response.put("age", passenger.getAge());
+		response.put("gender", passenger.getGender());
+		response.put("phone", passenger.getPhone());
+		
+		List<Map<String, Object>> reservation = new ArrayList<>();
+		SimpleDateFormat target = new SimpleDateFormat("yyyy-MM-dd-HH");
+		for(Reservation r : reservations) {
+			Map<String, Object> indReservation = new LinkedHashMap<>();
+			indReservation.put("orderNumber", r.getOrderNumber());
+			indReservation.put("price", r.getPrice());
+			
+			List<Map<String, Object>>flight = new ArrayList<>();
+			for(Flight f : r.getFlights()) {
+				Map<String, Object> indFlight = new LinkedHashMap<>();
+				indFlight.put("number", f.getNumber());
+				indFlight.put("price", f.getPrice());
+				indFlight.put("from", f.getFrom());
+				indFlight.put("to", f.getTo());
+				indFlight.put("departureTime", target.format(f.getDepartureTime()));
+				indFlight.put("arrivalTime", target.format(f.getArrivalTime()));
+				indFlight.put("description", f.getDescription());
+				indFlight.put("plane", f.getPlane());
+				flight.add(indFlight);
+			}
+			
+			HashMap<String, Object> flMap = new LinkedHashMap<>();
+			flMap.put("flight", flight);
+			
+			indReservation.put("flights", flMap);
+			reservation.add(indReservation);
+		}
+		HashMap<String, Object> rMap = new LinkedHashMap<>();
+		rMap.put("reservation", reservation);
+		
+		response.put("reservations",rMap);
+		Map<String, Object> Response = new LinkedHashMap<>();
+		Response.put("passenger", response);
+		return Response;
 	}
 }

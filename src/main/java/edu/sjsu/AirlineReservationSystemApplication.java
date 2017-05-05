@@ -19,7 +19,7 @@ public class AirlineReservationSystemApplication extends WebMvcConfigurerAdapter
 		SpringApplication.run(AirlineReservationSystemApplication.class, args);
 	}
 	
-	 @Override
+	 /*@Override
 	 public void configureContentNegotiation(ContentNegotiationConfigurer configurer) {
 		 configurer
 		 .favorParameter(true)
@@ -27,5 +27,5 @@ public class AirlineReservationSystemApplication extends WebMvcConfigurerAdapter
 		 	.defaultContentType(MediaType.APPLICATION_JSON)
 	        .ignoreAcceptHeader(true)
 	        .mediaType("true", MediaType.APPLICATION_XML);
-	 }
+	 }*/
 }
