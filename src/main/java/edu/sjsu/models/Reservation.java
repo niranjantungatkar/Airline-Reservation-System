@@ -2,32 +2,36 @@ package edu.sjsu.models;
 
 import java.util.List;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 
+import org.hibernate.annotations.GenericGenerator;
+
 @Entity
 public class Reservation {
-	
+
 	@Id
+	@GeneratedValue(generator = "reservationNoGenerator")
+	@GenericGenerator(name = "reservationNoGenerator", strategy = "edu.sjsu.utils.ReservationIdGenerator")
 	private String orderNumber;
-    
+
 	@OneToOne
 	@JoinColumn(name = "passenger")
 	private Passenger passenger;
-    
+
 	private int price; // sum of each flight’s price.
-    
-    @OneToMany
-    private List<Flight> flights;
+
+	@OneToMany
+	private List<Flight> flights;
 
 	public Reservation() {
 		super();
 	}
-    
+
 	public String getOrderNumber() {
 		return orderNumber;
 	}

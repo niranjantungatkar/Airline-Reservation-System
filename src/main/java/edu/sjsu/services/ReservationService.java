@@ -174,7 +174,7 @@ public class ReservationService {
 		reservation.setPassenger(passenger);
 		reservation.setFlights(flights);
 		reservation.setPrice(total_price);
-		reservation.setOrderNumber("AJAY007");
+		//reservation.setOrderNumber("AJAY007");
 
 		reservationDAO.createReservation(reservation);
 
