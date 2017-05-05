@@ -8,6 +8,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.json.JSONObject;
+import org.json.XML;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.http.HttpStatus;
@@ -18,6 +20,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import edu.sjsu.services.PassengerService;
 import edu.sjsu.services.ReservationService;
@@ -50,7 +54,6 @@ public class PassengerController {
 									 @RequestParam("gender") String gender,
 									 @RequestParam("phone") String phone) {
 		try {
-			System.out.println("post");
 			//Create a new Passenger
 			Passenger newPassenger = new Passenger();
 			newPassenger.setFirstname(firstname);
@@ -91,7 +94,7 @@ public class PassengerController {
 		response.put("firstname", passenger.getFirstname());
 		response.put("lastname", passenger.getLastname());
 		response.put("age", passenger.getAge());
-		response.put("gender", passenger.getPhone());
+		response.put("gender", passenger.getGender());
 		response.put("phone", passenger.getPhone());
 		
 		List<Map<String, Object>> reservation = new ArrayList<>();
@@ -111,6 +114,9 @@ public class PassengerController {
 				indFlight.put("arrivalTime", f.getArrivalTime());
 				indFlight.put("description", f.getDescription());
 				indFlight.put("plane", f.getPlane());
+				//Map<String, Object> indFlMap = new HashMap<>();
+				//indFlMap.put("flight", indFlight);
+				//flight.add(indFlMap);
 				flight.add(indFlight);
 			}
 			
@@ -118,49 +124,18 @@ public class PassengerController {
 			flMap.put("flight", flight);
 			
 			indReservation.put("flights", flMap);
+			//Map<String, Object> indRvMap = new HashMap<>();
+			//indRvMap.put("reservation", indReservation);
 			reservation.add(indReservation);
 		}
 		HashMap<String, Object> rMap = new LinkedHashMap<>();
 		rMap.put("reservation", reservation);
 		
 		response.put("reservations",rMap);
-		
-		return response;
+		Map<String, Object> testResponse = new LinkedHashMap<>();
+		testResponse.put("passenger", response);
+		return testResponse;
 	}
-	
-	
-	/**
-	 * GET Passenger - /passenger/{id} - METHOD - GET
-	 * Gets ID as pathvariable. Returns JSON
-	 * @author tungatkarniranjan
-	 * @param id
-	 * @return
-	 */
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	@RequestMapping(value = "/passenger/{id}", produces = {"application/json"}, method = RequestMethod.GET)
-	public ResponseEntity getPassenger(@PathVariable("id") String id) {
-		try {
-			System.out.println("json get");
-			//Get the passenger with the required id
-			Passenger passenger = passengerService.getPassenger(id);
-			
-			if(passenger != null) {
-				
-				//Get all his reservations
-				List<Reservation> reservations = reservationService.getReservations(passenger);
-				
-				//Build a map of the passenger
-				return new ResponseEntity(buildPassengerResponse(passenger, reservations), HttpStatus.OK);
-			}
-			else {
-				String error = "Sorry, the requested passenger with id "+id+" does not exist";
-				return new ResponseEntity(getErrorResponse("404",error), HttpStatus.NOT_FOUND);
-			}
-		} catch (Exception ex) {
-			return new ResponseEntity(getErrorResponse("400", ex.getMessage()), HttpStatus.BAD_REQUEST);
-		}
-	}
-	
 	
 	
 	/**
@@ -171,9 +146,9 @@ public class PassengerController {
 	 * @return 
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	@RequestMapping(value = "/passenger/{id}", params="xml=true", produces={"application/xml"}, method = RequestMethod.GET)
+	@RequestMapping(value = "/passenger/{id}")
 	public ResponseEntity getPassenger(@PathVariable("id") String id,
-								  @RequestParam(value = "xml") String xml) {
+								  	   @RequestParam(value = "xml", required = false) String xml) {
 		try {
 			System.out.println("xml get");
 			Passenger passenger = passengerService.getPassenger(id);
@@ -181,8 +156,13 @@ public class PassengerController {
 				//Get all his reservations
 				List<Reservation> reservations = reservationService.getReservations(passenger);
 				
-				//Build a map of the passenger
-				return new ResponseEntity(buildPassengerResponse(passenger, reservations), HttpStatus.OK);
+				JSONObject json = new JSONObject(buildPassengerResponse(passenger, reservations));
+			
+				if(xml != null)
+					return new ResponseEntity(XML.toString(json), HttpStatus.OK);
+				else
+					return new ResponseEntity(json.toString(), HttpStatus.OK);
+				
 			}
 			else {
 				String error = "Sorry, the requested passenger with id "+id+" does not exist";
