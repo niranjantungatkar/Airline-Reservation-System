@@ -84,6 +84,15 @@ public class ReservationService {
 		List<Flight> addedFlights = flightService.getFlights(flightsAdded);
 		List<Flight> removedFlights = flightService.getFlights(flightsRemoved);
 
+		if(flightsRemoved!= null && flightsRemoved.length > 0){
+			for(Flight rmFlight : removedFlights){
+				if(rmFlight == null){
+					throw new Exception("Flight to be removed does not exists");
+				}
+			}
+		}
+		
+		
 		List<Flight> flights = null;
 		try {
 			flights = reservation.getFlights();
@@ -91,12 +100,18 @@ public class ReservationService {
 			throw new NullPointerException("Reservation " + number + " does not exists!! Please check again!!");
 		}
 
-		if(addedFlights.size() == 0 || removedFlights.size() == 0){
-			throw new ReservationNotFoundException("Flight not found. Please check newly added and removed flights again");
+		if(flightsAdded != null){
+			if(addedFlights == null || addedFlights.size() < flightsAdded.length){
+				throw new ReservationNotFoundException("Flight not found. Please check newly added and removed flights again");
+			}
 		}
+		
 		
 		// Check the number of seats left before proceeding
 		for (Flight flight : addedFlights) {
+			if(flight == null){
+				throw new Exception("Flight in AddedFlightList does not exists");
+			}
 			if (flight.getSeatsLeft() < 1) {
 				throw new Exception(
 						"Not enough seats left in the flight " + flight.getNumber() + " that you are trying to add ");
@@ -108,11 +123,21 @@ public class ReservationService {
 		for (Flight flight : flights) {
 			allFlightNumbers.add(flight.getNumber());
 		}
-		Collections.addAll(allFlightNumbers, flightsAdded);
+		if(flightsAdded != null)
+			Collections.addAll(allFlightNumbers, flightsAdded);
 
 		// remove the flight from the existing reservation
-		for (String str : flightsRemoved) {
-			allFlightNumbers.remove(str);
+		if(flightsRemoved !=null){
+			for (String str : flightsRemoved) {
+				if(!allFlightNumbers.contains(str)){
+					throw new Exception("Flight to be removed does not exists in reservation");
+				}
+				allFlightNumbers.remove(str);
+			}
+		}
+		
+		if(allFlightNumbers.size() == 0){
+			throw new Exception("There will be no flights in the reservation after update. Please check again!!");
 		}
 
 		// Check the overlap in the current updated reservation

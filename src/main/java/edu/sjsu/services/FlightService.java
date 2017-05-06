@@ -1,5 +1,7 @@
 package edu.sjsu.services;
 
+import static org.hamcrest.CoreMatchers.nullValue;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -8,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import edu.sjsu.dataaccess.FlightDAO;
 import edu.sjsu.models.Flight;
+import edu.sjsu.utils.ReservationNotFoundException;
 
 @Service
 public class FlightService {
@@ -28,8 +31,10 @@ public class FlightService {
 	 */
 	public List<Flight> getFlights(String[] flightList) {
 		List<Flight> flights = new ArrayList<>();
-		for (String flightNumber : flightList) {
-			flights.add(flightdao.getFlight(flightNumber));
+		if(flightList != null){
+			for (String flightNumber : flightList) {
+				flights.add(flightdao.getFlight(flightNumber));
+			}
 		}
 		return flights;
 	}

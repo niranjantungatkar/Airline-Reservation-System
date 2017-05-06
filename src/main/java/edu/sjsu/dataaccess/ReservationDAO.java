@@ -99,10 +99,10 @@ public class ReservationDAO {
 		}
 		if (parameters.containsKey("flightNumber")) {
 			if (!firstCame) {
-				query.append(" where f.number = '" + parameters.get("f.number") + "'");
+				query.append(" where f.number = '" + parameters.get("flightNumber") + "'");
 				firstCame = true;
 			} else {
-				query.append(" AND f.number = '" + parameters.get("f.number") + "'");
+				query.append(" AND f.number = '" + parameters.get("flightNumber") + "'");
 			}
 		}
 

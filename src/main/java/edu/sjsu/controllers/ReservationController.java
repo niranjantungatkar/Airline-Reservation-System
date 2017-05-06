@@ -109,13 +109,12 @@ public class ReservationController {
 		HttpHeaders responseHeaders = new HttpHeaders();
 		responseHeaders.setContentType(MediaType.APPLICATION_JSON);
 		try {
-			if (flightsAdded == null || flightsAdded.length == 0) {
-				throw new Exception("FlightsAdded can not be empty. Please check the request again");
-			}
-			if (flightsRemoved == null || flightsRemoved.length == 0) {
-				throw new Exception("Flightsremoved can not be empty. Please check the request again");
-			}
-
+//			if (flightsAdded == null || flightsAdded.length == 0) {
+//				throw new Exception("FlightsAdded can not be empty. Please check the request again");
+//			}
+//			if (flightsRemoved == null || flightsRemoved.length == 0) {
+//				throw new Exception("Flightsremoved can not be empty. Please check the request again");
+//			}
 			// get the updated reservation
 			Reservation reservation = reservationservice.updateReservation(number, flightsAdded, flightsRemoved);
 			LinkedHashMap<String, Object> output = responseBodyGenerator.buildMakeReservationResponse(reservation);
@@ -125,7 +124,6 @@ public class ReservationController {
 			return new ResponseEntity(getErrorResponse("404", e.getMessage()).toString(), responseHeaders,
 					HttpStatus.NOT_FOUND);
 		} catch (Exception e) {
-			System.out.println("halfladf"+ e.getMessage());
 			return new ResponseEntity(getErrorResponse("400", e.getMessage()).toString(), responseHeaders,
 					HttpStatus.BAD_REQUEST);
 		}
