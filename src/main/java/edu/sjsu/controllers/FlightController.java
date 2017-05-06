@@ -10,6 +10,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.XML;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,23 +41,7 @@ public class FlightController {
 	@Autowired
 	private ReservationService reservationService;
 	
-	public String [] getFlightListArray(List<Passenger> passengers, String flightnumber) {
-		List<String> flightList = new ArrayList<>();
-		for(Passenger p : passengers) {
-			List<Reservation> reservations = reservationService.getReservations(p);
-			for(Reservation r : reservations) {
-				List<Flight> flights = r.getFlights();
-				for(Flight f : flights) {
-					if(f.getNumber() == flightnumber)
-						continue;
-					else {
-						flightList.add(f.getNumber());
-					}
-				}
-			}
-		}
-		return flightList.toArray(new String[flightList.size()]);
-	}
+	
 
 	/**
 	 * CREATE OR UPDATE FLIGHT
@@ -73,6 +58,7 @@ public class FlightController {
 	 * @param arrivalTime
 	 * @param yearOfManufacture
 	 * @return
+	 * @throws JSONException 
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@RequestMapping(value = "/flight/{flightNumber}", method = RequestMethod.POST)
@@ -86,29 +72,25 @@ public class FlightController {
 							   		   @RequestParam("model") String model,
 							   		   @RequestParam("manufacturer") String manufacturer,
 							   		   @RequestParam("arrivalTime") String arrivalTime,
-							   		   @RequestParam("yearOfManufacture") int yearOfManufacture) {
+							   		   @RequestParam("yearOfManufacture") int yearOfManufacture) throws JSONException {
 		try {
-			
 			Flight updFlight = flightservice.getFlight(flightnumber); 
 			if( updFlight != null ) {
 				List<Passenger> passengers = updFlight.getPassengers();
 				if(updFlight.getPlane().getCapacity() - updFlight.getSeatsLeft() > capacity) {
-					HttpHeaders responseHeaders = new HttpHeaders();
-					responseHeaders.setContentType(MediaType.APPLICATION_JSON);
-					return new ResponseEntity(getErrorResponse("400", "Reservation count greater than capacity"), responseHeaders, HttpStatus.BAD_REQUEST);
+					JSONObject json = new JSONObject(getErrorResponse("400", "Reservation count greater than capacity"));
+					return new ResponseEntity(XML.toString(json), getXMLHeaders(), HttpStatus.BAD_REQUEST);
 				} else {
-					if( flightservice.checkOverlap(getFlightListArray(passengers, flightnumber))) {
-						HttpHeaders responseHeaders = new HttpHeaders();
-						responseHeaders.setContentType(MediaType.APPLICATION_JSON);
-						return new ResponseEntity(getErrorResponse("400", "Passenger flights overlap! Can't  change the Flight arrival Departure time") 
-												  ,responseHeaders
-												  ,HttpStatus.BAD_REQUEST);
+					
+					DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd-HH");
+					Date depT = formatter.parse(departureTime);	
+					Date arrT = formatter.parse(arrivalTime);
+					
+					if( checkOverlap(passengers, flightnumber, depT, arrT)) {
+						JSONObject json = new JSONObject(getErrorResponse("400", "Passenger flights overlap! Can't  change the Flight arrival Departure time"));
+						return new ResponseEntity(XML.toString(json), getXMLHeaders(), HttpStatus.BAD_REQUEST);
 					} else {
 						updFlight.setSeatsLeft(capacity - ( updFlight.getPlane().getCapacity() - updFlight.getSeatsLeft() ) );
-						
-						DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd-HH");
-						Date depT = formatter.parse(departureTime);	
-						Date arrT = formatter.parse(arrivalTime);
 						
 						Plane plane = new Plane();
 						plane.setCapacity(capacity);
@@ -125,9 +107,7 @@ public class FlightController {
 						updFlight.setPlane(plane);
 						
 						JSONObject responseFlight = new JSONObject(buildFlightResponse(flightservice.createFlight(updFlight)));
-						HttpHeaders responseHeaders = new HttpHeaders();
-						responseHeaders.setContentType(MediaType.APPLICATION_XML);
-						return new ResponseEntity(XML.toString(responseFlight), responseHeaders, HttpStatus.OK);
+						return new ResponseEntity(XML.toString(responseFlight), getXMLHeaders(), HttpStatus.OK);
 					}
 				}
 			} else {
@@ -153,14 +133,11 @@ public class FlightController {
 				flight.setPlane(plane);
 				
 				JSONObject responseFlight = new JSONObject(buildFlightResponse(flightservice.createFlight(flight)));
-				HttpHeaders responseHeaders = new HttpHeaders();
-				responseHeaders.setContentType(MediaType.APPLICATION_XML);
-				return new ResponseEntity(XML.toString(responseFlight), responseHeaders, HttpStatus.OK);
+				return new ResponseEntity(XML.toString(responseFlight), getXMLHeaders(), HttpStatus.OK);
 			}
 		} catch(Exception ex) {
-			HttpHeaders responseHeaders = new HttpHeaders();
-			responseHeaders.setContentType(MediaType.APPLICATION_XML);
-			return new ResponseEntity(getErrorResponse("400", ex.getMessage()), responseHeaders, HttpStatus.BAD_REQUEST);
+			JSONObject json = new JSONObject(getErrorResponse("400", ex.getMessage()));
+			return new ResponseEntity(XML.toString(json), getXMLHeaders(), HttpStatus.BAD_REQUEST);
 		}
 		
 	}
@@ -171,32 +148,35 @@ public class FlightController {
 	 * @param xml
 	 * @param json
 	 * @return
+	 * @throws JSONException 
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@RequestMapping(value="/flight/{number}")
 	public ResponseEntity getFlight(@PathVariable("number") String number, 
-							        @RequestParam(value="xml",required = false) String xml) {
+							        @RequestParam(value="xml",required = false) String xml) throws JSONException {
 		try {
 			if(flightservice.getFlight(number) != null) {
+				JSONObject flight = new JSONObject(buildFlightResponse(flightservice.getFlight(number)));
 				if(xml != null) {
-					JSONObject flight = new JSONObject(buildFlightResponse(flightservice.getFlight(number)));
-					HttpHeaders responseHeaders = new HttpHeaders();
-					responseHeaders.setContentType(MediaType.APPLICATION_XML);
-					return new ResponseEntity(XML.toString(flight), responseHeaders, HttpStatus.OK);
+					return new ResponseEntity(XML.toString(flight), getXMLHeaders(), HttpStatus.OK);
 				} else {
-					JSONObject flight = new JSONObject(buildFlightResponse(flightservice.getFlight(number)));
-					HttpHeaders responseHeaders = new HttpHeaders();
-					responseHeaders.setContentType(MediaType.APPLICATION_JSON);
-					return new ResponseEntity(flight.toString(), responseHeaders, HttpStatus.OK);
+					return new ResponseEntity(flight.toString(), getJSONHeaders(), HttpStatus.OK);
 				}	
 			} else {
-				HttpHeaders responseHeaders = new HttpHeaders();
-				responseHeaders.setContentType(MediaType.APPLICATION_JSON);
-				return new ResponseEntity(getErrorResponse("404", "Flight with number "+number+" not found"), responseHeaders, HttpStatus.NOT_FOUND);
+				JSONObject json = new JSONObject(getErrorResponse("404", "Flight with number "+number+" not found"));
+				if(xml != null) {
+					return new ResponseEntity(XML.toString(json), getXMLHeaders(), HttpStatus.NOT_FOUND);
+				} else {
+					return new ResponseEntity(json.toString(), getJSONHeaders(), HttpStatus.NOT_FOUND);
+				}
 			}
 		} catch(Exception ex) {
-			ex.printStackTrace();
-			return new ResponseEntity(getErrorResponse("400", ex.getMessage()), HttpStatus.BAD_REQUEST);
+			JSONObject json = new JSONObject(getErrorResponse("400", ex.getMessage()));
+			if(xml != null) {
+				return new ResponseEntity(XML.toString(json), getXMLHeaders(), HttpStatus.BAD_REQUEST);
+			} else {
+				return new ResponseEntity(json.toString(), getJSONHeaders(), HttpStatus.BAD_REQUEST);
+			}
 		}
 	}
 	
@@ -215,15 +195,21 @@ public class FlightController {
 				List<Passenger> passengers = flight.getPassengers();
 				if(passengers == null || passengers.size() == 0) {
 					flightservice.deleteFlight(flight);
-					return new ResponseEntity(getErrorResponse("200", "Flight with number "+number+" deleted successfully."), HttpStatus.OK);
+					JSONObject json = new JSONObject();
+					json.put("code", 200);
+					json.put("msg", "Flight with number "+number+" deleted successfully");
+					return new ResponseEntity(json.toString(),getJSONHeaders(),HttpStatus.OK);
 				} else {
-					return new ResponseEntity(getErrorResponse("400", "Flight with number "+number+" cannot be deleted. It has one or more reservations"), HttpStatus.BAD_REQUEST);
+					JSONObject json = new JSONObject(getErrorResponse("400", "Flight with number "+number+" cannot be deleted. It has one or more reservations"));
+					return new ResponseEntity(json.toString(), getJSONHeaders(), HttpStatus.BAD_REQUEST);
 				}		
 			} else {
-				return new ResponseEntity(getErrorResponse("404", "Flight with number "+number+" not found"), HttpStatus.NOT_FOUND);
+				JSONObject json = new JSONObject(getErrorResponse("404", "Flight with number "+number+" not found"));
+				return new ResponseEntity(json.toString(), getJSONHeaders(), HttpStatus.NOT_FOUND);
 			}		
 		} catch (Exception ex) {
-			return new ResponseEntity(getErrorResponse("400", ex.getMessage()), HttpStatus.BAD_REQUEST);
+			JSONObject json = new JSONObject(getErrorResponse("400", ex.getMessage()));
+			return new ResponseEntity( json.toString(), getJSONHeaders(), HttpStatus.BAD_REQUEST);
 		}
 	}
 	
@@ -265,16 +251,56 @@ public class FlightController {
 	}
 	
 	@SuppressWarnings("rawtypes")
-	public HashMap<String, Map> getErrorResponse(String errorcode, String error) {
+	public Map<String, Map> getErrorResponse(String errorcode, String error) {
 		HashMap<String, String> errorMap = new HashMap<String, String>();
 		errorMap.put("code", errorcode);
 		errorMap.put("msg", error);
 		HashMap<String, Map> errorResponse = new HashMap<String, Map>();
 		errorResponse.put("Badrequest", errorMap);
 		return errorResponse;
+	}	
+	
+	public boolean checkOverlap(List<Passenger> passengers, String flightnumber, Date depT, Date arrT) {
+		
+		for(Passenger p : passengers) {
+			List<Reservation> reservations = reservationService.getReservations(p);
+			for(Reservation r : reservations) {
+				List<Flight> flights = r.getFlights();
+				for(Flight f : flights) {
+					if(f.getNumber() == flightnumber)
+						continue;
+					else {
+						boolean case1 = (depT.after(f.getDepartureTime())
+								|| depT.equals(f.getDepartureTime()))
+								&& (depT.before(f.getArrivalTime())
+										|| depT.equals(f.getArrivalTime()));
+						boolean case2 = (arrT.after(f.getDepartureTime())
+								|| arrT.equals(f.getDepartureTime()))
+								&& (arrT.before(f.getArrivalTime())
+										|| arrT.equals(f.getArrivalTime()));
+						if (case1 || case2) {
+							return true;
+						}
+					}
+				}
+			}
+		}
+		return false;
 	}
 	
+	public HttpHeaders getXMLHeaders() {
+		HttpHeaders responseHeaders = new HttpHeaders();
+		responseHeaders.setContentType(MediaType.APPLICATION_XML);
+		return responseHeaders;
+	}
 	
+	public HttpHeaders getJSONHeaders() {
+		HttpHeaders responseHeaders = new HttpHeaders();
+		responseHeaders.setContentType(MediaType.APPLICATION_JSON);
+		return responseHeaders;
+	}
 	
-	
+	public JSONObject createJSONObject(Map<Object, Object> map) {
+		return new JSONObject(map);
+	}
 }

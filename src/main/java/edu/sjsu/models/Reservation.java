@@ -6,7 +6,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
-import javax.persistence.OneToMany;
+import javax.persistence.ManyToMany;
 import javax.persistence.OneToOne;
 
 import org.hibernate.annotations.GenericGenerator;
@@ -25,7 +25,7 @@ public class Reservation {
 
 	private int price; // sum of each flight’s price.
 
-	@OneToMany
+	@ManyToMany
 	private List<Flight> flights;
 
 	public Reservation() {
