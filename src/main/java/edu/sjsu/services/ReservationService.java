@@ -3,8 +3,11 @@ package edu.sjsu.services;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+
+import javax.naming.NameNotFoundException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -13,6 +16,8 @@ import edu.sjsu.dataaccess.ReservationDAO;
 import edu.sjsu.models.Flight;
 import edu.sjsu.models.Passenger;
 import edu.sjsu.models.Reservation;
+import edu.sjsu.utils.ReservationNotFoundException;
+import net.minidev.json.JSONObject;
 
 @Service
 public class ReservationService {
@@ -72,7 +77,8 @@ public class ReservationService {
 		return false;
 	}
 
-	public void updateReservation(String number, String[] flightsAdded, String[] flightsRemoved) throws Exception {
+	public Reservation updateReservation(String number, String[] flightsAdded, String[] flightsRemoved)
+			throws Exception {
 
 		Reservation reservation = reservationDAO.getReservation(number);
 		List<Flight> addedFlights = flightService.getFlights(flightsAdded);
@@ -156,10 +162,11 @@ public class ReservationService {
 		}
 		// Save the updated values
 		reservationDAO.createReservation(reservation);
+		return reservation;
 
 	}
 
-	public void createReservation(String passengerid, String[] flightLists) {
+	public Reservation createReservation(String passengerid, String[] flightLists) {
 
 		Reservation reservation = new Reservation();
 
@@ -174,7 +181,7 @@ public class ReservationService {
 		reservation.setPassenger(passenger);
 		reservation.setFlights(flights);
 		reservation.setPrice(total_price);
-		//reservation.setOrderNumber("AJAY007");
+		// reservation.setOrderNumber("AJAY007");
 
 		reservationDAO.createReservation(reservation);
 
@@ -184,17 +191,19 @@ public class ReservationService {
 			flight.setSeatsLeft(flight.getSeatsLeft() - 1);
 			flightService.createFlight(flight);
 		}
+		return reservation;
 	}
 
-	public void searchReservations(LinkedHashMap<String, String> parameters) throws Exception {
-		// TODO : getting list of reservations here. Need to format in required xml structure
-		reservationDAO.searchReservations(parameters);
+	public List<Reservation> searchReservations(LinkedHashMap<String, String> parameters) throws Exception {
+		List<Reservation> reservations = reservationDAO.searchReservations(parameters);
+		return reservations;
 	}
 
-	public void cancelReservation(String number) throws Exception {
+	public void cancelReservation(String number) throws ReservationNotFoundException {
 		Reservation reservation = reservationDAO.getReservation(number);
 		if (reservation == null) {
-			throw new Exception("Reservation with number " + number + " does not exists");
+			//throw new Exception("Reservation with number " + number + " does not exists");
+			throw new ReservationNotFoundException("Reservation with number " + number + " does not exists");
 		}
 		List<Flight> flights = reservation.getFlights();
 		Passenger passenger = reservation.getPassenger();
