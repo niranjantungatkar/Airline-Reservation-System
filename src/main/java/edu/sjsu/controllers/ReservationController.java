@@ -5,6 +5,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.XML;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,15 +47,15 @@ public class ReservationController {
 	@SuppressWarnings("unchecked")
 	@RequestMapping(value = "/reservation", method = RequestMethod.POST)
 	public ResponseEntity makeReservation(@RequestParam("passengerId") String pid,
-			@RequestParam("flightLists") String[] flightLists) {
+			@RequestParam("flightLists") String[] flightLists) throws JSONException {
 		HttpHeaders responseHeaders = new HttpHeaders();
-		responseHeaders.setContentType(MediaType.APPLICATION_JSON);
+		responseHeaders.setContentType(MediaType.APPLICATION_XML);
 		try {
 
 			Passenger passenger = passengerService.getPassenger(pid);
 			if (passenger == null) {
 				System.out.println("Passenger does not exists");
-				throw new Exception("Passenger" + pid + " Does not exists");
+				throw new ReservationNotFoundException("Passenger" + pid + " Does not exists");
 			}
 
 			// Check for the over lap between the flights of current reservation
@@ -72,11 +73,8 @@ public class ReservationController {
 			// Check duplicate reservation
 			if (reservationservice.checkDuplicate(pid, flightLists)) {
 				System.out.println("Duplicate reservation");
-				HttpHeaders responseHeaders1 = new HttpHeaders();
-				responseHeaders1.setContentType(MediaType.APPLICATION_JSON);
-				return new ResponseEntity(getErrorResponse("400", "Olaola").toString(), responseHeaders1, HttpStatus.BAD_REQUEST);
-//				throw new Exception(
-//						"Duplicate reservation. Reservation with same passenger and flights already exists. Please check is the history");
+				throw new Exception(
+						"Duplicate reservation. Reservation with same passenger and flights already exists. Please check is the history");
 			}
 
 			// Check existing reservations for overlap
@@ -90,10 +88,15 @@ public class ReservationController {
 			LinkedHashMap<String, Object> output = responseBodyGenerator.buildMakeReservationResponse(reservation);
 
 			Gson gson = new Gson();
-			return new ResponseEntity(gson.toJson(output, LinkedHashMap.class), responseHeaders, HttpStatus.OK);
+			return new ResponseEntity(XML.toString(gson.toJson(output, LinkedHashMap.class)), responseHeaders,
+					HttpStatus.OK);
 
+		} catch (ReservationNotFoundException e) {
+			return new ResponseEntity(XML.toString(getErrorResponse("404", e.getMessage())), responseHeaders,
+					HttpStatus.NOT_FOUND);
 		} catch (Exception e) {
-			return new ResponseEntity(getErrorResponse("400", e.getMessage()).toString(), responseHeaders, HttpStatus.BAD_REQUEST);
+			return new ResponseEntity(XML.toString(getErrorResponse("400", e.getMessage())), responseHeaders,
+					HttpStatus.BAD_REQUEST);
 		}
 	}
 
@@ -116,8 +119,11 @@ public class ReservationController {
 			LinkedHashMap<String, Object> output = responseBodyGenerator.buildMakeReservationResponse(reservation);
 			Gson gson = new Gson();
 			return new ResponseEntity(gson.toJson(output, LinkedHashMap.class), responseHeaders, HttpStatus.OK);
-		} catch (Exception e) {
+		} catch (ReservationNotFoundException e) {
 			return new ResponseEntity(getErrorResponse("404", e.getMessage()).toString(), responseHeaders,
+					HttpStatus.NOT_FOUND);
+		} catch (Exception e) {
+			return new ResponseEntity(getErrorResponse("400", e.getMessage()).toString(), responseHeaders,
 					HttpStatus.BAD_REQUEST);
 		}
 	}
@@ -127,7 +133,8 @@ public class ReservationController {
 	public ResponseEntity searchReservation(@RequestParam(value = "passengerId", required = false) String passengerId,
 			@RequestParam(value = "from", required = false) String from,
 			@RequestParam(value = "to", required = false) String to,
-			@RequestParam(value = "flightNumber", required = false) String flightNumber) {
+			@RequestParam(value = "flightNumber", required = false) String flightNumber)
+			throws ReservationNotFoundException {
 		LinkedHashMap<String, String> parameters = new LinkedHashMap<>();
 
 		HttpHeaders responseHeaders = new HttpHeaders();
@@ -142,13 +149,22 @@ public class ReservationController {
 		if (flightNumber != null)
 			parameters.put("flightNumber", flightNumber);
 		try {
+			if (parameters.size() == 0) {
+				throw new ReservationNotFoundException("Not enough parameters to query the reservations");
+			}
 			List<Reservation> reservations = reservationservice.searchReservations(parameters);
+			if (reservations.size() == 0) {
+				throw new ReservationNotFoundException("No reservations found!!");
+			}
 			LinkedHashMap<String, Object> output = responseBodyGenerator.buildSearchReservationResponse(reservations);
 
 			Gson gson = new Gson();
 			return new ResponseEntity(gson.toJson(output, LinkedHashMap.class), responseHeaders, HttpStatus.OK);
-		} catch (Exception e) {
+		} catch (ReservationNotFoundException e) {
 			return new ResponseEntity(getErrorResponse("404", e.getMessage()).toString(), responseHeaders,
+					HttpStatus.NOT_FOUND);
+		} catch (Exception e) {
+			return new ResponseEntity(getErrorResponse("400", e.getMessage()).toString(), responseHeaders,
 					HttpStatus.BAD_REQUEST);
 		}
 	}
@@ -160,19 +176,37 @@ public class ReservationController {
 		responseHeaders.setContentType(MediaType.APPLICATION_JSON);
 		try {
 			reservationservice.cancelReservation(number);
-			return null;
-		} catch (ReservationNotFoundException e) {
-			return new ResponseEntity(getErrorResponse("400", e.getMessage()).toString(), responseHeaders,
+			return new ResponseEntity(getErrorResponse("200", "Reservation cancelled successfully"), responseHeaders,
 					HttpStatus.BAD_REQUEST);
+		} catch (ReservationNotFoundException e) {
+			return new ResponseEntity(getErrorResponse("404", e.getMessage()).toString(), responseHeaders,
+					HttpStatus.NOT_FOUND);
 		} catch (Exception e) {
-			return new ResponseEntity(getErrorResponse("200", e.getMessage()).toString(), responseHeaders,
+			return new ResponseEntity(getErrorResponse("400", e.getMessage()).toString(), responseHeaders,
 					HttpStatus.BAD_REQUEST);
 		}
 	}
 
 	@RequestMapping(value = "/reservation/{orderNumber}", method = RequestMethod.GET)
-	public Reservation getReservation(@PathVariable("orderNumber") String orderNumber) {
-		return reservationservice.getReservation(orderNumber);
+	public ResponseEntity getReservation(@PathVariable(value = "orderNumber", required = true) String orderNumber) {
+		HttpHeaders responseHeaders = new HttpHeaders();
+		responseHeaders.setContentType(MediaType.APPLICATION_JSON);
+		try {
+			Reservation reservation = reservationservice.getReservation(orderNumber);
+			if (reservation == null) {
+				throw new ReservationNotFoundException("Reservaton dies not exists");
+			}
+			LinkedHashMap<String, Object> output = responseBodyGenerator.buildMakeReservationResponse(reservation);
+			Gson gson = new Gson();
+			return new ResponseEntity(gson.toJson(output, LinkedHashMap.class), responseHeaders, HttpStatus.OK);
+		} catch (ReservationNotFoundException e) {
+			return new ResponseEntity(getErrorResponse("404", e.getMessage()).toString(), responseHeaders,
+					HttpStatus.NOT_FOUND);
+		} catch (Exception e) {
+			return new ResponseEntity(getErrorResponse("400", e.getMessage()).toString(), responseHeaders,
+					HttpStatus.BAD_REQUEST);
+		}
+
 	}
 
 	@SuppressWarnings("rawtypes")

@@ -91,6 +91,10 @@ public class ReservationService {
 			throw new NullPointerException("Reservation " + number + " does not exists!! Please check again!!");
 		}
 
+		if(addedFlights.size() == 0 || removedFlights.size() == 0){
+			throw new ReservationNotFoundException("Flight not found. Please check newly added and removed flights again");
+		}
+		
 		// Check the number of seats left before proceeding
 		for (Flight flight : addedFlights) {
 			if (flight.getSeatsLeft() < 1) {
