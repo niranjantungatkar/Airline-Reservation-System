@@ -96,6 +96,7 @@ public class ReservationController {
 			return new ResponseEntity(XML.toString(getErrorResponse("404", e.getMessage())), responseHeaders,
 					HttpStatus.NOT_FOUND);
 		} catch (Exception e) {
+			e.printStackTrace(System.out);
 			return new ResponseEntity(XML.toString(getErrorResponse("400", e.getMessage())), responseHeaders,
 					HttpStatus.BAD_REQUEST);
 		}
@@ -178,8 +179,14 @@ public class ReservationController {
 		responseHeaders.setContentType(MediaType.APPLICATION_JSON);
 		try {
 			reservationservice.cancelReservation(number);
-			return new ResponseEntity(getErrorResponse("200", "Reservation cancelled successfully"), responseHeaders,
-					HttpStatus.BAD_REQUEST);
+			HashMap<String, String> errorMap = new HashMap<String, String>();
+			errorMap.put("code", "200");
+			errorMap.put("msg", "Reservation cancelled successfully");
+			HashMap<String, Map> errorResponse = new HashMap<String, Map>();
+			errorResponse.put("Response", errorMap);
+			JSONObject json = new JSONObject(errorResponse);
+			return new ResponseEntity(json.toString(), responseHeaders,
+					HttpStatus.OK);
 		} catch (ReservationNotFoundException e) {
 			return new ResponseEntity(getErrorResponse("404", e.getMessage()).toString(), responseHeaders,
 					HttpStatus.NOT_FOUND);
@@ -196,7 +203,7 @@ public class ReservationController {
 		try {
 			Reservation reservation = reservationservice.getReservation(orderNumber);
 			if (reservation == null) {
-				throw new ReservationNotFoundException("Reservaton dies not exists");
+				throw new ReservationNotFoundException("Reservation does not exists");
 			}
 			LinkedHashMap<String, Object> output = responseBodyGenerator.buildMakeReservationResponse(reservation);
 			Gson gson = new Gson();

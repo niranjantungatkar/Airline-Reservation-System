@@ -12,6 +12,7 @@ import javax.transaction.Transactional;
 import org.springframework.stereotype.Repository;
 import edu.sjsu.models.Passenger;
 import edu.sjsu.models.Reservation;
+import edu.sjsu.utils.ReservationNotFoundException;
 
 @Repository
 @Transactional
@@ -107,9 +108,6 @@ public class ReservationDAO {
 
 		String str = query.toString();
 		List<String> reservationIds = entityManager.createQuery(str).getResultList();
-		if (reservationIds.size() == 0) {
-			throw new Exception("No reservations found for given criteria");
-		}
 		List<Reservation> reservations = getReservations(reservationIds);
 		return reservations;
 		

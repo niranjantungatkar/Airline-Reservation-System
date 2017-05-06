@@ -66,11 +66,17 @@ public class FlightService {
 		return false;
 	}
 
-	public Boolean checkFlightAvailability(String flightNumber) {
-		return flightdao.getFlight(flightNumber).getSeatsLeft() > 0;
+	public Boolean checkFlightAvailability(String flightNumber) throws Exception {
+		Flight flight = flightdao.getFlight(flightNumber);
+		if (flight != null) {
+			return flight.getSeatsLeft() > 0;
+		} else {
+			throw new Exception("Flight does not exists. Please check again");
+		}
+
 	}
 
-	public Boolean checkFlightsAvailability(String[] flights) {
+	public Boolean checkFlightsAvailability(String[] flights) throws Exception {
 
 		Boolean result = true;
 		for (String flightNumber : flights) {

@@ -1,5 +1,6 @@
 package edu.sjsu.utils;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -16,7 +17,7 @@ public class ResponseBodyGenerator {
 
 	public LinkedHashMap<String, Object> buildMakeReservationResponse(Reservation reservation) {
 		LinkedHashMap<String, Object> response = new LinkedHashMap<>();
-		// response.put("reservation", reservation);
+		SimpleDateFormat target = new SimpleDateFormat("yyyy-MM-dd-HH");
 
 		response.put("orderNumber", reservation.getOrderNumber());
 		response.put("price", reservation.getPrice());
@@ -38,8 +39,8 @@ public class ResponseBodyGenerator {
 			flightMap.put("price", flight.getPrice());
 			flightMap.put("from", flight.getFrom());
 			flightMap.put("to", flight.getTo());
-			flightMap.put("depatureTime", flight.getDepartureTime());
-			flightMap.put("arrivalTime", flight.getArrivalTime());
+			flightMap.put("depatureTime", target.format(flight.getDepartureTime()));
+			flightMap.put("arrivalTime", target.format(flight.getArrivalTime()));
 			flightMap.put("seatsLeft", flight.getSeatsLeft());
 			flightMap.put("description", flight.getDescription());
 			flightMap.put("plane", flight.getPlane());
