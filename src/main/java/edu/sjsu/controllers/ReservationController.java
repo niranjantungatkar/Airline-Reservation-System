@@ -86,9 +86,10 @@ public class ReservationController {
 			// reservationservice.createReservation(pid, flightLists);
 			Reservation reservation = reservationservice.createReservation(pid, flightLists);
 			LinkedHashMap<String, Object> output = responseBodyGenerator.buildMakeReservationResponse(reservation);
-
+			JSONObject json = new JSONObject(output); 
+					//gson.toJson(output, LinkedHashMap.class);
 			Gson gson = new Gson();
-			return new ResponseEntity(XML.toString(gson.toJson(output, LinkedHashMap.class)), responseHeaders,
+			return new ResponseEntity(XML.toString(json), responseHeaders,
 					HttpStatus.OK);
 
 		} catch (ReservationNotFoundException e) {
@@ -102,15 +103,15 @@ public class ReservationController {
 
 	@RequestMapping(value = "/reservation/{number}", method = RequestMethod.POST)
 	public ResponseEntity updateReservation(@PathVariable("number") String number,
-			@RequestParam("flightsAdded") String[] flightsAdded,
-			@RequestParam("flightsRemoved") String[] flightsRemoved) {
+			@RequestParam(value="flightsAdded", required=false) String[] flightsAdded,
+			@RequestParam(value="flightsRemoved", required=false) String[] flightsRemoved) {
 		HttpHeaders responseHeaders = new HttpHeaders();
 		responseHeaders.setContentType(MediaType.APPLICATION_JSON);
 		try {
-			if (flightsAdded.length == 0) {
+			if (flightsAdded == null || flightsAdded.length == 0) {
 				throw new Exception("FlightsAdded can not be empty. Please check the request again");
 			}
-			if (flightsRemoved.length == 0) {
+			if (flightsRemoved == null || flightsRemoved.length == 0) {
 				throw new Exception("Flightsremoved can not be empty. Please check the request again");
 			}
 
@@ -123,6 +124,7 @@ public class ReservationController {
 			return new ResponseEntity(getErrorResponse("404", e.getMessage()).toString(), responseHeaders,
 					HttpStatus.NOT_FOUND);
 		} catch (Exception e) {
+			System.out.println("halfladf"+ e.getMessage());
 			return new ResponseEntity(getErrorResponse("400", e.getMessage()).toString(), responseHeaders,
 					HttpStatus.BAD_REQUEST);
 		}
