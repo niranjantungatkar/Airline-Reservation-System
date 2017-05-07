@@ -44,6 +44,14 @@ public class ReservationController {
 	@Autowired
 	private ResponseBodyGenerator responseBodyGenerator;
 
+	/**
+	 * Make the reservation for passenger
+	 * 
+	 * @param pid
+	 * @param flightLists
+	 * @return
+	 * @throws JSONException
+	 */
 	@SuppressWarnings("unchecked")
 	@RequestMapping(value = "/reservation", method = RequestMethod.POST)
 	public ResponseEntity makeReservation(@RequestParam("passengerId") String pid,
@@ -86,11 +94,10 @@ public class ReservationController {
 			// reservationservice.createReservation(pid, flightLists);
 			Reservation reservation = reservationservice.createReservation(pid, flightLists);
 			LinkedHashMap<String, Object> output = responseBodyGenerator.buildMakeReservationResponse(reservation);
-			JSONObject json = new JSONObject(output); 
-					//gson.toJson(output, LinkedHashMap.class);
+			JSONObject json = new JSONObject(output);
+			// gson.toJson(output, LinkedHashMap.class);
 			Gson gson = new Gson();
-			return new ResponseEntity(XML.toString(json), responseHeaders,
-					HttpStatus.OK);
+			return new ResponseEntity(XML.toString(json), responseHeaders, HttpStatus.OK);
 
 		} catch (ReservationNotFoundException e) {
 			return new ResponseEntity(XML.toString(getErrorResponse("404", e.getMessage())), responseHeaders,
@@ -102,19 +109,30 @@ public class ReservationController {
 		}
 	}
 
+	/**
+	 * Update the exiting reservation
+	 * 
+	 * @param number
+	 * @param flightsAdded
+	 * @param flightsRemoved
+	 * @return
+	 */
+	@SuppressWarnings("rawtypes")
 	@RequestMapping(value = "/reservation/{number}", method = RequestMethod.POST)
 	public ResponseEntity updateReservation(@PathVariable("number") String number,
-			@RequestParam(value="flightsAdded", required=false) String[] flightsAdded,
-			@RequestParam(value="flightsRemoved", required=false) String[] flightsRemoved) {
+			@RequestParam(value = "flightsAdded", required = false) String[] flightsAdded,
+			@RequestParam(value = "flightsRemoved", required = false) String[] flightsRemoved) {
 		HttpHeaders responseHeaders = new HttpHeaders();
 		responseHeaders.setContentType(MediaType.APPLICATION_JSON);
 		try {
-//			if (flightsAdded == null || flightsAdded.length == 0) {
-//				throw new Exception("FlightsAdded can not be empty. Please check the request again");
-//			}
-//			if (flightsRemoved == null || flightsRemoved.length == 0) {
-//				throw new Exception("Flightsremoved can not be empty. Please check the request again");
-//			}
+			// if (flightsAdded == null || flightsAdded.length == 0) {
+			// throw new Exception("FlightsAdded can not be empty. Please check
+			// the request again");
+			// }
+			// if (flightsRemoved == null || flightsRemoved.length == 0) {
+			// throw new Exception("Flightsremoved can not be empty. Please
+			// check the request again");
+			// }
 			// get the updated reservation
 			Reservation reservation = reservationservice.updateReservation(number, flightsAdded, flightsRemoved);
 			LinkedHashMap<String, Object> output = responseBodyGenerator.buildMakeReservationResponse(reservation);
@@ -129,17 +147,26 @@ public class ReservationController {
 		}
 	}
 
-	// passengerId=XX&from=YY&to=ZZ&flightNumber=GH2Z1
+	/**Search the reservation from parameters
+	 * 
+	 * @param passengerId
+	 * @param from
+	 * @param to
+	 * @param flightNumber
+	 * @return
+	 * @throws ReservationNotFoundException
+	 * @throws JSONException 
+	 */
 	@RequestMapping(value = "/reservation", method = RequestMethod.GET)
 	public ResponseEntity searchReservation(@RequestParam(value = "passengerId", required = false) String passengerId,
 			@RequestParam(value = "from", required = false) String from,
 			@RequestParam(value = "to", required = false) String to,
 			@RequestParam(value = "flightNumber", required = false) String flightNumber)
-			throws ReservationNotFoundException {
+			throws ReservationNotFoundException, JSONException {
 		LinkedHashMap<String, String> parameters = new LinkedHashMap<>();
 
 		HttpHeaders responseHeaders = new HttpHeaders();
-		responseHeaders.setContentType(MediaType.APPLICATION_JSON);
+		responseHeaders.setContentType(MediaType.APPLICATION_XML);
 
 		if (passengerId != null)
 			parameters.put("passengerId", passengerId);
@@ -158,18 +185,22 @@ public class ReservationController {
 				throw new ReservationNotFoundException("No reservations found!!");
 			}
 			LinkedHashMap<String, Object> output = responseBodyGenerator.buildSearchReservationResponse(reservations);
-
-			Gson gson = new Gson();
-			return new ResponseEntity(gson.toJson(output, LinkedHashMap.class), responseHeaders, HttpStatus.OK);
+			JSONObject json = new JSONObject(output);
+			return new ResponseEntity(XML.toString(json), responseHeaders, HttpStatus.OK);
 		} catch (ReservationNotFoundException e) {
-			return new ResponseEntity(getErrorResponse("404", e.getMessage()).toString(), responseHeaders,
+			return new ResponseEntity( XML.toString(getErrorResponse("404", e.getMessage())), responseHeaders,
 					HttpStatus.NOT_FOUND);
 		} catch (Exception e) {
-			return new ResponseEntity(getErrorResponse("400", e.getMessage()).toString(), responseHeaders,
+			return new ResponseEntity(XML.toString(getErrorResponse("400", e.getMessage())), responseHeaders,
 					HttpStatus.BAD_REQUEST);
 		}
 	}
 
+	/**
+	 * Cancels the given reservation
+	 * @param number
+	 * @return
+	 */
 	@SuppressWarnings("unchecked")
 	@RequestMapping(value = "/reservation/{number}", method = RequestMethod.DELETE)
 	public ResponseEntity cancelReservation(@PathVariable(value = "number") String number) {
@@ -183,8 +214,7 @@ public class ReservationController {
 			HashMap<String, Map> errorResponse = new HashMap<String, Map>();
 			errorResponse.put("Response", errorMap);
 			JSONObject json = new JSONObject(errorResponse);
-			return new ResponseEntity(json.toString(), responseHeaders,
-					HttpStatus.OK);
+			return new ResponseEntity(json.toString(), responseHeaders, HttpStatus.OK);
 		} catch (ReservationNotFoundException e) {
 			return new ResponseEntity(getErrorResponse("404", e.getMessage()).toString(), responseHeaders,
 					HttpStatus.NOT_FOUND);
@@ -194,6 +224,11 @@ public class ReservationController {
 		}
 	}
 
+	/**
+	 * Get the reservation details from reservation number
+	 * @param orderNumber
+	 * @return
+	 */
 	@RequestMapping(value = "/reservation/{orderNumber}", method = RequestMethod.GET)
 	public ResponseEntity getReservation(@PathVariable(value = "orderNumber", required = true) String orderNumber) {
 		HttpHeaders responseHeaders = new HttpHeaders();
@@ -216,6 +251,12 @@ public class ReservationController {
 
 	}
 
+	/**
+	 * Create the error response in Map
+	 * @param errorcode
+	 * @param error
+	 * @return
+	 */
 	@SuppressWarnings("rawtypes")
 	public JSONObject getErrorResponse(String errorcode, String error) {
 		HashMap<String, String> errorMap = new HashMap<String, String>();

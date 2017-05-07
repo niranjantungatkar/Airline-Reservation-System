@@ -27,8 +27,12 @@ public class ReservationService {
 	@Autowired
 	private FlightService flightService;
 
-	/*
-	 * Returns true if there is any overlap between existing flights
+	/** Checks overlap between exsisting flights
+	 * 
+	 * @param passengerid
+	 * @param flightLists
+	 * @return true if overlap exists, else false
+	 * @throws Exception
 	 */
 	public boolean checkOverlapExisting(String passengerid, String[] flightLists) throws Exception {
 		Passenger passenger = passengerService.getPassenger(passengerid);
@@ -44,6 +48,12 @@ public class ReservationService {
 		return flightService.checkOverlap(allFlights.toArray(new String[allFlights.size()]));
 	}
 
+	/** Check if flight has duplicate
+	 * 
+	 * @param passengerid
+	 * @param flightLists
+	 * @return true if flight is duplicate, else false
+	 */
 	public boolean checkDuplicate(String passengerid, String[] flightLists) {
 		int match = 0;
 		Passenger pssenger = passengerService.getPassenger(passengerid);
@@ -73,6 +83,14 @@ public class ReservationService {
 		return false;
 	}
 
+	/** Update the reservation
+	 * 
+	 * @param number
+	 * @param flightsAdded
+	 * @param flightsRemoved
+	 * @return Returns the updated reservation
+	 * @throws Exception
+	 */
 	public Reservation updateReservation(String number, String[] flightsAdded, String[] flightsRemoved)
 			throws Exception {
 
@@ -224,6 +242,11 @@ public class ReservationService {
 		return reservations;
 	}
 
+	/** Cancels the reservation
+	 * 
+	 * @param number
+	 * @throws ReservationNotFoundException
+	 */
 	public void cancelReservation(String number) throws ReservationNotFoundException {
 		Reservation reservation = reservationDAO.getReservation(number);
 		if (reservation == null) {

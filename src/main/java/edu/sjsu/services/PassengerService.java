@@ -40,6 +40,11 @@ public class PassengerService {
 		return passengerDAO.updatePassenger(updPassenger);
 	}
 	
+	/** Deletes the passenger
+	 * 
+	 * @param id
+	 * @return true, if passenger deleted successfully, else false
+	 */
 	public boolean deletePassenger(String id) {
 		Passenger delPassenger = passengerDAO.getPassenger(id);
 		if(delPassenger != null) {

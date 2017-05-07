@@ -22,10 +22,19 @@ public class PassengerDAO {
 	    return entityManager.createQuery("from Passenger").getResultList();
 	  }
 	  
+	  /**
+	   * Creates the Passenger 
+	   * @param newPassenger
+	   */
 	  public void createPassenger(Passenger newPassenger) {
 		  entityManager.persist(newPassenger);
 	  }
 	  
+	  /**
+	   * Retrieve the Passsenger
+	   * @param id
+	   * @return pasenger object
+	   */
 	  public Passenger getPassenger(String id) {
 		  return entityManager.find(Passenger.class, id);
 	  }

@@ -24,10 +24,19 @@ public class FlightDAO {
 		return entityManager.find(Flight.class, number);
 	}
 	
+	/**Creates the flight
+	 * 
+	 * @param flight
+	 * @return
+	 */
 	public Flight createFlight(Flight flight) {
 		return entityManager.merge(flight);
 	}
 	
+	/**
+	 * Deletes the flight
+	 * @param flight
+	 */
 	public void deleteFlight(Flight flight) {
 		entityManager.remove(flight);
 	}

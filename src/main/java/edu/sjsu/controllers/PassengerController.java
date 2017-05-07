@@ -245,6 +245,12 @@ public class PassengerController {
 		return errorResponse;
 	}
 
+	/**
+	 * Create JSON reponse from entity
+	 * @param passenger
+	 * @param reservations
+	 * @return
+	 */
 	// Move to utils
 	public Map<String, Object> buildPassengerResponse(Passenger passenger, List<Reservation> reservations) {
 

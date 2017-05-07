@@ -31,7 +31,7 @@ public class FlightService {
 	 */
 	public List<Flight> getFlights(String[] flightList) {
 		List<Flight> flights = new ArrayList<>();
-		if(flightList != null){
+		if (flightList != null) {
 			for (String flightNumber : flightList) {
 				flights.add(flightdao.getFlight(flightNumber));
 			}
@@ -39,6 +39,12 @@ public class FlightService {
 		return flights;
 	}
 
+	/**Checks the overlap between the flight timings
+	 * 
+	 * @param flightLists
+	 * @return true if overlap exists false if overlap does not exists
+	 * @throws Exception
+	 */
 	public Boolean checkOverlap(String[] flightLists) throws Exception {
 		List<Flight> flights = getFlights(flightLists);
 
@@ -71,6 +77,12 @@ public class FlightService {
 		return false;
 	}
 
+	/**Check if flight has enough seats
+	 * 
+	 * @param flightNumber
+	 * @return true if flight is available
+	 * @throws Exception
+	 */
 	public Boolean checkFlightAvailability(String flightNumber) throws Exception {
 		Flight flight = flightdao.getFlight(flightNumber);
 		if (flight != null) {
@@ -80,7 +92,13 @@ public class FlightService {
 		}
 
 	}
-
+	
+	/** Check flight availability wrapper
+	 * 
+	 * @param flights
+	 * @return true flight is avaiable, else false
+	 * @throws Exception
+	 */
 	public Boolean checkFlightsAvailability(String[] flights) throws Exception {
 
 		Boolean result = true;

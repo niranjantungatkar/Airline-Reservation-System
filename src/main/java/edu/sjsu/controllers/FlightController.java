@@ -250,6 +250,12 @@ public class FlightController {
 		return Response;
 	}
 	
+	/**
+	 * Get Error response in Map
+	 * @param errorcode
+	 * @param error
+	 * @return
+	 */
 	@SuppressWarnings("rawtypes")
 	public Map<String, Map> getErrorResponse(String errorcode, String error) {
 		HashMap<String, String> errorMap = new HashMap<String, String>();
@@ -260,6 +266,14 @@ public class FlightController {
 		return errorResponse;
 	}	
 	
+	/**
+	 * Check overlap in the flights timeings
+	 * @param passengers
+	 * @param flightnumber
+	 * @param depT
+	 * @param arrT
+	 * @return
+	 */
 	public boolean checkOverlap(List<Passenger> passengers, String flightnumber, Date depT, Date arrT) {
 		
 		for(Passenger p : passengers) {
