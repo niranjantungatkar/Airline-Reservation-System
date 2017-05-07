@@ -7,6 +7,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.hibernate.exception.ConstraintViolationException;
 import org.json.JSONObject;
 import org.json.XML;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,11 +76,17 @@ public class PassengerController {
 
 			return new ResponseEntity(json.toString(), responseHeaders, HttpStatus.OK);
 
-		} catch (Exception ex) {
+		}catch (Exception ex) {
 			HttpHeaders responseHeaders = new HttpHeaders();
 			responseHeaders.setContentType(MediaType.APPLICATION_JSON);
-			JSONObject json = new JSONObject(getErrorResponse("400", ex.getMessage()));
-			return new ResponseEntity(json.toString(), responseHeaders, HttpStatus.BAD_REQUEST);
+			if(ex.getMessage().contains("ConstraintViolationException")){
+				JSONObject json = new JSONObject(getErrorResponse("400", "Phone number already registered for other passenger!. Can not create Passenger."));
+				return new ResponseEntity(json.toString(), responseHeaders, HttpStatus.BAD_REQUEST);
+			}else{
+				JSONObject json = new JSONObject(getErrorResponse("400", ex.getMessage()));
+				return new ResponseEntity(json.toString(), responseHeaders, HttpStatus.BAD_REQUEST);
+			}
+			
 		}
 	}
 
@@ -177,9 +184,13 @@ public class PassengerController {
 		} catch (Exception ex) {
 			HttpHeaders responseHeaders = new HttpHeaders();
 			responseHeaders.setContentType(MediaType.APPLICATION_JSON);
-			JSONObject json = new JSONObject(getErrorResponse("400", ex.getMessage()));
-			return new ResponseEntity(json.toString(), responseHeaders,
-					HttpStatus.BAD_REQUEST);
+			if(ex.getMessage().contains("ConstraintViolationException")){
+				JSONObject json = new JSONObject(getErrorResponse("400", "Phone number already registered for other passenger!. Can not update Passenger."));
+				return new ResponseEntity(json.toString(), responseHeaders, HttpStatus.BAD_REQUEST);
+			}else{
+				JSONObject json = new JSONObject(getErrorResponse("400", ex.getMessage()));
+				return new ResponseEntity(json.toString(), responseHeaders, HttpStatus.BAD_REQUEST);
+			}
 		}
 	}
 

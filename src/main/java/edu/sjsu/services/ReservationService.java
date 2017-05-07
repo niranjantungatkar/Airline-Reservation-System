@@ -3,11 +3,8 @@ package edu.sjsu.services;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
-
-import javax.naming.NameNotFoundException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,7 +14,6 @@ import edu.sjsu.models.Flight;
 import edu.sjsu.models.Passenger;
 import edu.sjsu.models.Reservation;
 import edu.sjsu.utils.ReservationNotFoundException;
-import net.minidev.json.JSONObject;
 
 @Service
 public class ReservationService {
